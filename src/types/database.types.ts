@@ -46,6 +46,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       card_pool: {
         Row: {
@@ -90,6 +91,7 @@ export interface Database {
           popularity_snapshot?: number | null
           pool_updated_at?: string
         }
+        Relationships: []
       }
       user_cards: {
         Row: {
@@ -113,6 +115,22 @@ export interface Database {
           stars?: number
           obtained_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "user_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "card_pool"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_cards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       albums: {
         Row: {
@@ -142,6 +160,7 @@ export interface Database {
           reward_description?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       user_album_progress: {
         Row: {
@@ -165,6 +184,22 @@ export interface Database {
           completed_at?: string | null
           reward_claimed?: boolean
         }
+        Relationships: [
+          {
+            foreignKeyName: "user_album_progress_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_album_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
