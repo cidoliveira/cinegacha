@@ -51,37 +51,43 @@ export interface Database {
         Row: {
           id: string
           tmdb_id: number
-          card_type: "movie" | "actor" | "director" | "studio"
+          card_type: "movie" | "actor" | "director"
           name: string
           image_path: string | null
           rarity: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
           atk: number
           def: number
           metadata: Json
+          rarity_score: number | null
+          popularity_snapshot: number | null
           pool_updated_at: string
         }
         Insert: {
           id: string
           tmdb_id: number
-          card_type: "movie" | "actor" | "director" | "studio"
+          card_type: "movie" | "actor" | "director"
           name: string
           image_path?: string | null
           rarity: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
           atk: number
           def: number
           metadata?: Json
+          rarity_score?: number | null
+          popularity_snapshot?: number | null
           pool_updated_at?: string
         }
         Update: {
           id?: string
           tmdb_id?: number
-          card_type?: "movie" | "actor" | "director" | "studio"
+          card_type?: "movie" | "actor" | "director"
           name?: string
           image_path?: string | null
           rarity?: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
           atk?: number
           def?: number
           metadata?: Json
+          rarity_score?: number | null
+          popularity_snapshot?: number | null
           pool_updated_at?: string
         }
       }
