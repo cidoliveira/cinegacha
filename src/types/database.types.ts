@@ -206,7 +206,14 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      open_pack: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_pack_status: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
