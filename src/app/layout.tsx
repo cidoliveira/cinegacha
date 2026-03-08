@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Bebas_Neue } from 'next/font/google'
+import { RootLayoutShell } from '@/components/layout/root-layout-shell'
 import './globals.css'
 
 const inter = Inter({
@@ -28,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${bebasNeue.variable}`}>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-text-primary">
-        <main className="flex-1">{children}</main>
+        <RootLayoutShell>{children}</RootLayoutShell>
       </body>
     </html>
   )
