@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 const navLinks = [
-  { label: 'Packs', href: '/' },
+  { label: 'Packs', href: '/gacha' },
   { label: 'Collection', href: '/' },
   { label: 'Albums', href: '/' },
 ]
