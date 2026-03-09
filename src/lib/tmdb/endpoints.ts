@@ -29,3 +29,36 @@ export function personMovieCredits(personId: number): Endpoint {
     path: `/person/${personId}/movie_credits`,
   }
 }
+
+export function discoverMoviesByGenre(
+  genreId: number,
+  page: number,
+  options?: { releaseDateGte?: string; releaseDateLte?: string },
+): Endpoint {
+  const params: Record<string, string | number | boolean> = {
+    sort_by: "popularity.desc",
+    "vote_count.gte": 200,
+    include_adult: false,
+    without_genres: "99,10770",
+    with_genres: genreId,
+    page,
+  }
+
+  if (options?.releaseDateGte) {
+    params["primary_release_date.gte"] = options.releaseDateGte
+  }
+  if (options?.releaseDateLte) {
+    params["primary_release_date.lte"] = options.releaseDateLte
+  }
+
+  return {
+    path: "/discover/movie",
+    params,
+  }
+}
+
+export function movieCredits(movieId: number): Endpoint {
+  return {
+    path: `/movie/${movieId}/credits`,
+  }
+}

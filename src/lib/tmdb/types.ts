@@ -79,3 +79,39 @@ export const tmdbPersonMovieCreditsResponseSchema = z.object({
 export type TmdbPersonMovieCreditsResponse = z.infer<
   typeof tmdbPersonMovieCreditsResponseSchema
 >
+
+// ---------- Movie Credits (from /movie/{id}/credits) ----------
+
+export const tmdbCastMemberSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  character: z.string().optional(),
+  profile_path: z.string().nullable(),
+  order: z.number(),
+  popularity: z.number(),
+  known_for_department: z.string().optional(),
+})
+
+export type TmdbCastMember = z.infer<typeof tmdbCastMemberSchema>
+
+export const tmdbCrewMemberSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  job: z.string(),
+  department: z.string(),
+  profile_path: z.string().nullable(),
+  popularity: z.number(),
+  known_for_department: z.string().optional(),
+})
+
+export type TmdbCrewMember = z.infer<typeof tmdbCrewMemberSchema>
+
+export const tmdbMovieCreditsResponseSchema = z.object({
+  id: z.number(),
+  cast: z.array(tmdbCastMemberSchema),
+  crew: z.array(tmdbCrewMemberSchema),
+})
+
+export type TmdbMovieCreditsResponse = z.infer<
+  typeof tmdbMovieCreditsResponseSchema
+>
