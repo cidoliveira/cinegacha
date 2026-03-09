@@ -1,15 +1,23 @@
 /**
  * Card pool builder -- orchestrates the full TMDB-to-Supabase pipeline.
  *
- * Fetches movies and people from TMDB, computes rarity scores,
- * assigns tiers, calculates ATK/DEF stats, and upserts into card_pool.
+ * Fetches movies via genre-based discovery with era splitting,
+ * extracts actors/directors from movie credits, validates all images,
+ * computes rarity scores, assigns tiers, calculates ATK/DEF stats,
+ * and upserts into card_pool.
  */
 import {
-  fetchDiscoverMovies,
+  fetchDiscoverMoviesByGenre,
+  fetchMovieCredits,
   fetchPopularPeople,
   fetchPersonMovieCredits,
 } from "@/lib/tmdb/client"
-import type { TmdbMovie, TmdbPerson } from "@/lib/tmdb/types"
+import type {
+  TmdbMovie,
+  TmdbPerson,
+  TmdbCastMember,
+  TmdbCrewMember,
+} from "@/lib/tmdb/types"
 import {
   computeMovieRarityScore,
   computeActorRarityScore,
@@ -23,6 +31,7 @@ import {
   computeDirectorStats,
   applyRarityMultiplier,
 } from "@/lib/card-pool/stats"
+import { validateImageUrl } from "@/lib/card-pool/validator"
 import { createAdminClient } from "@/lib/supabase/admin"
 import type { Database } from "@/types/database.types"
 
@@ -59,6 +68,77 @@ interface RarityEntity {
 }
 
 // ---------------------------------------------------------------------------
+// Genre-based sourcing constants
+// ---------------------------------------------------------------------------
+
+const MOVIE_GENRES = {
+  action: 28,
+  adventure: 12,
+  animation: 16,
+  comedy: 35,
+  crime: 80,
+  drama: 18,
+  family: 10751,
+  fantasy: 14,
+  history: 36,
+  horror: 27,
+  music: 10402,
+  mystery: 9648,
+  romance: 10749,
+  sciFi: 878,
+  thriller: 53,
+  war: 10752,
+  western: 37,
+} as const
+
+const GENRE_PAGE_COUNTS: Record<number, number> = {
+  [MOVIE_GENRES.drama]: 5,
+  [MOVIE_GENRES.comedy]: 4,
+  [MOVIE_GENRES.action]: 4,
+  [MOVIE_GENRES.thriller]: 3,
+  [MOVIE_GENRES.horror]: 3,
+  [MOVIE_GENRES.sciFi]: 3,
+  [MOVIE_GENRES.crime]: 3,
+  [MOVIE_GENRES.adventure]: 2,
+  [MOVIE_GENRES.romance]: 2,
+  [MOVIE_GENRES.animation]: 2,
+  [MOVIE_GENRES.fantasy]: 2,
+  [MOVIE_GENRES.mystery]: 2,
+  [MOVIE_GENRES.history]: 1,
+  [MOVIE_GENRES.war]: 1,
+  [MOVIE_GENRES.western]: 1,
+  [MOVIE_GENRES.music]: 1,
+  [MOVIE_GENRES.family]: 1,
+}
+
+// Era ranges for temporal diversity (top 4 genres only)
+const ERA_RANGES = [
+  { gte: "1900-01-01", lte: "1969-12-31", label: "Classic" },
+  { gte: "1970-01-01", lte: "1989-12-31", label: "70s-80s" },
+  { gte: "1990-01-01", lte: "2009-12-31", label: "90s-2000s" },
+  { gte: "2010-01-01", lte: "2025-12-31", label: "Modern" },
+] as const
+
+// Genres that get era-split queries (top 4 by page count)
+const ERA_SPLIT_GENRES: Set<number> = new Set([
+  MOVIE_GENRES.drama,
+  MOVIE_GENRES.comedy,
+  MOVIE_GENRES.action,
+  MOVIE_GENRES.thriller,
+])
+
+const MAX_CAST_PER_MOVIE = 5
+
+// Top 5 genres for refresh (simpler strategy)
+const REFRESH_GENRES = [
+  MOVIE_GENRES.drama,
+  MOVIE_GENRES.comedy,
+  MOVIE_GENRES.action,
+  MOVIE_GENRES.thriller,
+  MOVIE_GENRES.horror,
+]
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -77,55 +157,185 @@ function minMax(values: number[]): { min: number; max: number } {
   return { min, max }
 }
 
+function genreNameById(genreId: number): string {
+  for (const [name, id] of Object.entries(MOVIE_GENRES)) {
+    if (id === genreId) return name
+  }
+  return `genre-${genreId}`
+}
+
 // ---------------------------------------------------------------------------
 // Fetch helpers
 // ---------------------------------------------------------------------------
 
-async function fetchMovies(pages: number): Promise<TmdbMovie[]> {
-  const movies: TmdbMovie[] = []
+/**
+ * Fetch movies across all 17 genres with era splitting for top genres.
+ * Deduplicates by TMDB movie ID since movies appear in multiple genres.
+ */
+async function fetchMoviesByGenre(): Promise<TmdbMovie[]> {
+  const movieMap = new Map<number, TmdbMovie>()
 
-  for (let page = 1; page <= pages; page++) {
-    console.log(`[seed] Fetching movies page ${page}/${pages}`)
-    const response = await fetchDiscoverMovies(page)
-    const filtered = response.results.filter(
-      (m) => m.poster_path !== null && m.popularity >= 1.0
+  for (const [genreIdStr, pageCount] of Object.entries(GENRE_PAGE_COUNTS)) {
+    const genreId = Number(genreIdStr)
+    const genreName = genreNameById(genreId)
+    const beforeCount = movieMap.size
+
+    if (ERA_SPLIT_GENRES.has(genreId)) {
+      // Era-split: 1 page per era for temporal diversity
+      for (const era of ERA_RANGES) {
+        console.log(
+          `[seed] Genre ${genreName} (${era.label}): fetching 1 page`,
+        )
+        const response = await fetchDiscoverMoviesByGenre(genreId, 1, {
+          releaseDateGte: era.gte,
+          releaseDateLte: era.lte,
+        })
+        for (const movie of response.results) {
+          if (movie.poster_path !== null && !movieMap.has(movie.id)) {
+            movieMap.set(movie.id, movie)
+          }
+        }
+      }
+    } else {
+      // Standard: fetch pageCount pages
+      for (let page = 1; page <= pageCount; page++) {
+        console.log(
+          `[seed] Genre ${genreName}: fetching page ${page}/${pageCount}`,
+        )
+        const response = await fetchDiscoverMoviesByGenre(genreId, page)
+        for (const movie of response.results) {
+          if (movie.poster_path !== null && !movieMap.has(movie.id)) {
+            movieMap.set(movie.id, movie)
+          }
+        }
+      }
+    }
+
+    const newCount = movieMap.size - beforeCount
+    console.log(
+      `[seed] Genre ${genreName}: ${newCount} new movies (${movieMap.size} total)`,
     )
-    movies.push(...filtered)
   }
 
-  console.log(`[seed] Fetched ${movies.length} movies after filtering`)
-  return movies
+  console.log(`[seed] ${movieMap.size} unique movies after deduplication`)
+  return Array.from(movieMap.values())
 }
 
-async function fetchPeople(pages: number): Promise<{
+/**
+ * Extract actors and directors from movie credits.
+ * Much richer than popular-people endpoint since it finds people
+ * who actually appear in the movies in our pool.
+ */
+async function extractPeopleFromMovies(movieIds: number[]): Promise<{
   actors: TmdbPerson[]
   directors: TmdbPerson[]
 }> {
-  const actors: TmdbPerson[] = []
-  const directors: TmdbPerson[] = []
+  const actorsMap = new Map<number, TmdbPerson>()
+  const directorsMap = new Map<number, TmdbPerson>()
 
-  for (let page = 1; page <= pages; page++) {
-    console.log(`[seed] Fetching people page ${page}/${pages}`)
-    const response = await fetchPopularPeople(page)
-    const filtered = response.results.filter(
-      (p) => p.profile_path !== null && p.popularity >= 2.0
+  for (let i = 0; i < movieIds.length; i++) {
+    if (i % 50 === 0) {
+      console.log(`[seed] Processing credits ${i + 1}/${movieIds.length}`)
+    }
+
+    const credits = await fetchMovieCredits(movieIds[i])
+
+    // Extract top N cast members (sorted by order ascending)
+    const topCast = credits.cast
+      .filter((c: TmdbCastMember) => c.profile_path !== null)
+      .sort((a: TmdbCastMember, b: TmdbCastMember) => a.order - b.order)
+      .slice(0, MAX_CAST_PER_MOVIE)
+
+    for (const member of topCast) {
+      if (!actorsMap.has(member.id)) {
+        actorsMap.set(member.id, {
+          id: member.id,
+          name: member.name,
+          profile_path: member.profile_path,
+          popularity: member.popularity,
+          known_for_department:
+            member.known_for_department ?? "Acting",
+        })
+      }
+    }
+
+    // Extract directors
+    const directors = credits.crew.filter(
+      (c: TmdbCrewMember) =>
+        c.job === "Director" && c.profile_path !== null,
     )
 
-    for (const person of filtered) {
-      if (person.known_for_department === "Acting") {
-        actors.push(person)
-      } else if (person.known_for_department === "Directing") {
-        directors.push(person)
+    for (const member of directors) {
+      if (!directorsMap.has(member.id)) {
+        directorsMap.set(member.id, {
+          id: member.id,
+          name: member.name,
+          profile_path: member.profile_path,
+          popularity: member.popularity,
+          known_for_department:
+            member.known_for_department ?? "Directing",
+        })
       }
     }
   }
 
-  console.log(`[seed] Found ${actors.length} actors, ${directors.length} directors`)
-  return { actors, directors }
+  console.log(
+    `[seed] Extracted ${actorsMap.size} unique actors, ${directorsMap.size} unique directors from movie credits`,
+  )
+
+  return {
+    actors: Array.from(actorsMap.values()),
+    directors: Array.from(directorsMap.values()),
+  }
+}
+
+/**
+ * Supplement people from popular-people endpoint if credit extraction
+ * yielded too few results.
+ */
+async function supplementPeople(
+  actorsMap: Map<number, TmdbPerson>,
+  directorsMap: Map<number, TmdbPerson>,
+  minActors: number,
+  minDirectors: number,
+): Promise<void> {
+  if (actorsMap.size >= minActors && directorsMap.size >= minDirectors) {
+    return
+  }
+
+  console.log(
+    `[seed] Supplementing people (actors: ${actorsMap.size}/${minActors}, directors: ${directorsMap.size}/${minDirectors})`,
+  )
+
+  const pages = 10
+  for (let page = 1; page <= pages; page++) {
+    console.log(`[seed] Fetching popular people page ${page}/${pages}`)
+    const response = await fetchPopularPeople(page)
+
+    for (const person of response.results) {
+      if (person.profile_path === null) continue
+
+      if (
+        person.known_for_department === "Acting" &&
+        !actorsMap.has(person.id)
+      ) {
+        actorsMap.set(person.id, person)
+      } else if (
+        person.known_for_department === "Directing" &&
+        !directorsMap.has(person.id)
+      ) {
+        directorsMap.set(person.id, person)
+      }
+    }
+  }
+
+  console.log(
+    `[seed] After supplement: ${actorsMap.size} actors, ${directorsMap.size} directors`,
+  )
 }
 
 async function processActorCredits(
-  actors: TmdbPerson[]
+  actors: TmdbPerson[],
 ): Promise<ProcessedPerson[]> {
   const processed: ProcessedPerson[] = []
 
@@ -155,7 +365,7 @@ async function processActorCredits(
 }
 
 async function processDirectorCredits(
-  directors: TmdbPerson[]
+  directors: TmdbPerson[],
 ): Promise<ProcessedPerson[]> {
   const processed: ProcessedPerson[] = []
 
@@ -173,7 +383,7 @@ async function processDirectorCredits(
     const avgMovieVote =
       qualifying.reduce((sum, c) => sum + c.vote_average, 0) / qualifying.length
     const consistentCount = qualifying.filter(
-      (c) => c.vote_average > 6.0
+      (c) => c.vote_average > 6.0,
     ).length
     const careerConsistency = consistentCount / qualifying.length
 
@@ -190,13 +400,44 @@ async function processDirectorCredits(
 }
 
 // ---------------------------------------------------------------------------
+// Image validation
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate images for a list of items with a given path key and size.
+ * Returns only items whose images returned HTTP 200 on HEAD request.
+ */
+async function validateImages<T>(
+  items: T[],
+  getPath: (item: T) => string | null,
+  size: string,
+  label: string,
+): Promise<T[]> {
+  console.log(`[seed] Validating ${items.length} ${label} images...`)
+
+  const results = await Promise.all(
+    items.map(async (item) => {
+      const path = getPath(item)
+      if (!path) return false
+      return validateImageUrl(path, size)
+    }),
+  )
+
+  const valid = items.filter((_, i) => results[i])
+  console.log(
+    `[seed] ${label} images: ${valid.length}/${items.length} valid`,
+  )
+  return valid
+}
+
+// ---------------------------------------------------------------------------
 // Card building
 // ---------------------------------------------------------------------------
 
 function buildMovieCards(
   movies: TmdbMovie[],
   tieredMovies: (RarityEntity & { rarity: RarityTier })[],
-  moviePopRange: { min: number; max: number }
+  moviePopRange: { min: number; max: number },
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredMovies.map((t) => [t.id, t.rarity]))
   const movieMap = new Map(movies.map((m) => [makeCardId("movie", m.id), m]))
@@ -208,7 +449,7 @@ function buildMovieCards(
       movie.popularity,
       movie.vote_average,
       moviePopRange.min,
-      moviePopRange.max
+      moviePopRange.max,
     )
     const { atk, def } = applyRarityMultiplier(baseAtk, baseDef, rarity)
 
@@ -238,11 +479,11 @@ function buildMovieCards(
 function buildActorCards(
   processedActors: ProcessedPerson[],
   tieredActors: (RarityEntity & { rarity: RarityTier })[],
-  peoplePopRange: { min: number; max: number }
+  peoplePopRange: { min: number; max: number },
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredActors.map((t) => [t.id, t.rarity]))
   const actorMap = new Map(
-    processedActors.map((a) => [makeCardId("actor", a.person.id), a])
+    processedActors.map((a) => [makeCardId("actor", a.person.id), a]),
   )
 
   return tieredActors.map((t) => {
@@ -252,7 +493,7 @@ function buildActorCards(
       actor.person.popularity,
       actor.avgMovieVote,
       peoplePopRange.min,
-      peoplePopRange.max
+      peoplePopRange.max,
     )
     const { atk, def } = applyRarityMultiplier(baseAtk, baseDef, rarity)
 
@@ -279,11 +520,11 @@ function buildActorCards(
 function buildDirectorCards(
   processedDirectors: ProcessedPerson[],
   tieredDirectors: (RarityEntity & { rarity: RarityTier })[],
-  _peoplePopRange: { min: number; max: number }
+  _peoplePopRange: { min: number; max: number },
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredDirectors.map((t) => [t.id, t.rarity]))
   const directorMap = new Map(
-    processedDirectors.map((d) => [makeCardId("director", d.person.id), d])
+    processedDirectors.map((d) => [makeCardId("director", d.person.id), d]),
   )
 
   return tieredDirectors.map((t) => {
@@ -291,7 +532,7 @@ function buildDirectorCards(
     const rarity = tierMap.get(t.id)!
     const { baseAtk, baseDef } = computeDirectorStats(
       director.avgMovieVote,
-      director.careerConsistency
+      director.careerConsistency,
     )
     const { atk, def } = applyRarityMultiplier(baseAtk, baseDef, rarity)
 
@@ -327,14 +568,16 @@ async function batchUpsert(cards: CardPoolInsert[]): Promise<void> {
   for (let i = 0; i < cards.length; i += BATCH_SIZE) {
     const batch = cards.slice(i, i + BATCH_SIZE)
     console.log(
-      `[seed] Upserting batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(cards.length / BATCH_SIZE)} (${batch.length} cards)`
+      `[seed] Upserting batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(cards.length / BATCH_SIZE)} (${batch.length} cards)`,
     )
     const { error } = await supabase
       .from("card_pool")
       .upsert(batch, { onConflict: "id" })
 
     if (error) {
-      throw new Error(`Upsert failed at batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`)
+      throw new Error(
+        `Upsert failed at batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`,
+      )
     }
   }
 }
@@ -366,18 +609,64 @@ function countByRarity(cards: CardPoolInsert[]): Record<string, number> {
 export async function seedCardPool(): Promise<SeedResult> {
   console.log("[seed] Starting card pool seed...")
 
-  // 1. Fetch movies
-  const movies = await fetchMovies(50)
+  // 1. Clear existing card pool
+  const supabase = createAdminClient()
+  console.log("[seed] Clearing existing card pool...")
+  const { error: deleteError } = await supabase
+    .from("card_pool")
+    .delete()
+    .neq("id", "")
 
-  // 2. Fetch people
-  const { actors, directors } = await fetchPeople(25)
+  if (deleteError) {
+    throw new Error(`Failed to clear card pool: ${deleteError.message}`)
+  }
+  console.log("[seed] Cleared existing card pool")
 
-  // 3. Process credits
-  const processedActors = await processActorCredits(actors)
-  const processedDirectors = await processDirectorCredits(directors)
+  // 2. Fetch movies by genre (genre-based discover with era splits)
+  const movies = await fetchMoviesByGenre()
 
-  // 4. Compute rarity scores
-  const movieEntities: RarityEntity[] = movies.map((m) => ({
+  // 3. Extract people from movie credits
+  const movieIds = movies.map((m) => m.id)
+  const { actors: rawActors, directors: rawDirectors } =
+    await extractPeopleFromMovies(movieIds)
+
+  // Supplement if people count is low
+  const actorsMap = new Map(rawActors.map((a) => [a.id, a]))
+  const directorsMap = new Map(rawDirectors.map((d) => [d.id, d]))
+  await supplementPeople(actorsMap, directorsMap, 150, 50)
+  const actors = Array.from(actorsMap.values())
+  const directors = Array.from(directorsMap.values())
+
+  // 4. Validate images for all candidates
+  const validMovies = await validateImages(
+    movies,
+    (m) => m.poster_path,
+    "w500",
+    "movie",
+  )
+  const validActors = await validateImages(
+    actors,
+    (a) => a.profile_path,
+    "w185",
+    "actor",
+  )
+  const validDirectors = await validateImages(
+    directors,
+    (d) => d.profile_path,
+    "w185",
+    "director",
+  )
+
+  console.log(
+    `[seed] After image validation: ${validMovies.length} movies, ${validActors.length} actors, ${validDirectors.length} directors`,
+  )
+
+  // 5. Process credits for validated people
+  const processedActors = await processActorCredits(validActors)
+  const processedDirectors = await processDirectorCredits(validDirectors)
+
+  // 6. Compute rarity scores
+  const movieEntities: RarityEntity[] = validMovies.map((m) => ({
     id: makeCardId("movie", m.id),
     rarityScore: computeMovieRarityScore(m.popularity, m.vote_average),
   }))
@@ -387,7 +676,7 @@ export async function seedCardPool(): Promise<SeedResult> {
     rarityScore: computeActorRarityScore(
       a.person.popularity,
       a.avgMovieVote,
-      a.movieCreditCount
+      a.movieCreditCount,
     ),
   }))
 
@@ -396,41 +685,45 @@ export async function seedCardPool(): Promise<SeedResult> {
     rarityScore: computeDirectorRarityScore(
       d.person.popularity,
       d.avgMovieVote,
-      d.movieCreditCount
+      d.movieCreditCount,
     ),
   }))
 
-  // 5. Assign rarity tiers per card type
+  // 7. Assign rarity tiers per card type
   console.log("[seed] Assigning rarity tiers...")
   const tieredMovies = assignRarityTiers(movieEntities)
   const tieredActors = assignRarityTiers(actorEntities)
   const tieredDirectors = assignRarityTiers(directorEntities)
 
-  // 6. Compute stats
-  const moviePopRange = minMax(movies.map((m) => m.popularity))
+  // 8. Compute stats
+  const moviePopRange = minMax(validMovies.map((m) => m.popularity))
   const allPeoplePopularity = [
     ...processedActors.map((a) => a.person.popularity),
     ...processedDirectors.map((d) => d.person.popularity),
   ]
   const peoplePopRange = minMax(allPeoplePopularity)
 
-  // 7. Build card records
+  // 9. Build card records
   console.log("[seed] Building card records...")
-  const movieCards = buildMovieCards(movies, tieredMovies, moviePopRange)
-  const actorCards = buildActorCards(processedActors, tieredActors, peoplePopRange)
+  const movieCards = buildMovieCards(validMovies, tieredMovies, moviePopRange)
+  const actorCards = buildActorCards(
+    processedActors,
+    tieredActors,
+    peoplePopRange,
+  )
   const directorCards = buildDirectorCards(
     processedDirectors,
     tieredDirectors,
-    peoplePopRange
+    peoplePopRange,
   )
 
   const allCards = [...movieCards, ...actorCards, ...directorCards]
 
-  // 8. Upsert into card_pool
+  // 10. Upsert into card_pool
   console.log(`[seed] Upserting ${allCards.length} cards into card_pool...`)
   await batchUpsert(allCards)
 
-  // 9. Return summary
+  // 11. Return summary
   const summary: SeedResult = {
     totalCards: allCards.length,
     byType: countByType(allCards),
@@ -448,11 +741,28 @@ export async function seedCardPool(): Promise<SeedResult> {
 export async function refreshCardPool(): Promise<RefreshResult> {
   console.log("[refresh] Starting card pool refresh...")
 
-  // 1. Fetch trending movies (10 pages)
-  const movies = await fetchMovies(10)
+  // 1. Fetch movies from top 5 genres (2 pages each, no era splitting)
+  const movieMap = new Map<number, TmdbMovie>()
+  for (const genreId of REFRESH_GENRES) {
+    const genreName = genreNameById(genreId)
+    for (let page = 1; page <= 2; page++) {
+      console.log(
+        `[refresh] Genre ${genreName}: fetching page ${page}/2`,
+      )
+      const response = await fetchDiscoverMoviesByGenre(genreId, page)
+      for (const movie of response.results) {
+        if (movie.poster_path !== null && !movieMap.has(movie.id)) {
+          movieMap.set(movie.id, movie)
+        }
+      }
+    }
+  }
+  const movies = Array.from(movieMap.values())
+  console.log(`[refresh] ${movies.length} unique movies after deduplication`)
 
-  // 2. Fetch popular people (5 pages)
-  const { actors, directors } = await fetchPeople(5)
+  // 2. Extract people from these movies' credits
+  const movieIds = movies.map((m) => m.id)
+  const { actors, directors } = await extractPeopleFromMovies(movieIds)
 
   // 3. Process credits
   const processedActors = await processActorCredits(actors)
@@ -474,29 +784,29 @@ export async function refreshCardPool(): Promise<RefreshResult> {
 
   // 5. Separate new vs existing
   const newMovies = movies.filter(
-    (m) => !existingIds.has(makeCardId("movie", m.id))
+    (m) => !existingIds.has(makeCardId("movie", m.id)),
   )
   const existingMovies = movies.filter((m) =>
-    existingIds.has(makeCardId("movie", m.id))
+    existingIds.has(makeCardId("movie", m.id)),
   )
   const newActors = processedActors.filter(
-    (a) => !existingIds.has(makeCardId("actor", a.person.id))
+    (a) => !existingIds.has(makeCardId("actor", a.person.id)),
   )
   const existingActors = processedActors.filter((a) =>
-    existingIds.has(makeCardId("actor", a.person.id))
+    existingIds.has(makeCardId("actor", a.person.id)),
   )
   const newDirectors = processedDirectors.filter(
-    (d) => !existingIds.has(makeCardId("director", d.person.id))
+    (d) => !existingIds.has(makeCardId("director", d.person.id)),
   )
   const existingDirectors = processedDirectors.filter((d) =>
-    existingIds.has(makeCardId("director", d.person.id))
+    existingIds.has(makeCardId("director", d.person.id)),
   )
 
   console.log(
-    `[refresh] New: ${newMovies.length} movies, ${newActors.length} actors, ${newDirectors.length} directors`
+    `[refresh] New: ${newMovies.length} movies, ${newActors.length} actors, ${newDirectors.length} directors`,
   )
   console.log(
-    `[refresh] Existing: ${existingMovies.length} movies, ${existingActors.length} actors, ${existingDirectors.length} directors`
+    `[refresh] Existing: ${existingMovies.length} movies, ${existingActors.length} actors, ${existingDirectors.length} directors`,
   )
 
   // 6. Process NEW entities: compute rarity, assign tiers, compute stats, insert
@@ -509,7 +819,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     rarityScore: computeActorRarityScore(
       a.person.popularity,
       a.avgMovieVote,
-      a.movieCreditCount
+      a.movieCreditCount,
     ),
   }))
   const newDirectorEntities: RarityEntity[] = newDirectors.map((d) => ({
@@ -517,7 +827,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     rarityScore: computeDirectorRarityScore(
       d.person.popularity,
       d.avgMovieVote,
-      d.movieCreditCount
+      d.movieCreditCount,
     ),
   }))
 
@@ -543,12 +853,12 @@ export async function refreshCardPool(): Promise<RefreshResult> {
   const newActorCards = buildActorCards(
     newActors,
     tieredNewActors,
-    peoplePopRange
+    peoplePopRange,
   )
   const newDirectorCards = buildDirectorCards(
     newDirectors,
     tieredNewDirectors,
-    peoplePopRange
+    peoplePopRange,
   )
 
   const allNewCards = [...newMovieCards, ...newActorCards, ...newDirectorCards]
@@ -575,7 +885,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
       movie.popularity,
       movie.vote_average,
       moviePopRange.min,
-      moviePopRange.max
+      moviePopRange.max,
     )
     // We need the existing card's rarity to apply multiplier
     const cardId = makeCardId("movie", movie.id)
@@ -590,7 +900,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     const { atk, def } = applyRarityMultiplier(
       baseAtk,
       baseDef,
-      existing.rarity as RarityTier
+      existing.rarity as RarityTier,
     )
 
     const { error } = await supabase
@@ -608,7 +918,10 @@ export async function refreshCardPool(): Promise<RefreshResult> {
           vote_count: movie.vote_count,
           original_language: movie.original_language,
         },
-        rarity_score: computeMovieRarityScore(movie.popularity, movie.vote_average),
+        rarity_score: computeMovieRarityScore(
+          movie.popularity,
+          movie.vote_average,
+        ),
         popularity_snapshot: movie.popularity,
         pool_updated_at: now,
       })
@@ -623,7 +936,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
       actor.person.popularity,
       actor.avgMovieVote,
       peoplePopRange.min,
-      peoplePopRange.max
+      peoplePopRange.max,
     )
     const cardId = makeCardId("actor", actor.person.id)
     const { data: existing } = await supabase
@@ -637,7 +950,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     const { atk, def } = applyRarityMultiplier(
       baseAtk,
       baseDef,
-      existing.rarity as RarityTier
+      existing.rarity as RarityTier,
     )
 
     const { error } = await supabase
@@ -655,7 +968,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
         rarity_score: computeActorRarityScore(
           actor.person.popularity,
           actor.avgMovieVote,
-          actor.movieCreditCount
+          actor.movieCreditCount,
         ),
         popularity_snapshot: actor.person.popularity,
         pool_updated_at: now,
@@ -669,7 +982,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
   for (const director of existingDirectors) {
     const { baseAtk, baseDef } = computeDirectorStats(
       director.avgMovieVote,
-      director.careerConsistency
+      director.careerConsistency,
     )
     const cardId = makeCardId("director", director.person.id)
     const { data: existing } = await supabase
@@ -683,7 +996,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     const { atk, def } = applyRarityMultiplier(
       baseAtk,
       baseDef,
-      existing.rarity as RarityTier
+      existing.rarity as RarityTier,
     )
 
     const { error } = await supabase
@@ -702,7 +1015,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
         rarity_score: computeDirectorRarityScore(
           director.person.popularity,
           director.avgMovieVote,
-          director.movieCreditCount
+          director.movieCreditCount,
         ),
         popularity_snapshot: director.person.popularity,
         pool_updated_at: now,
