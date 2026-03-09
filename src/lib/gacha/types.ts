@@ -16,6 +16,7 @@ export interface PulledCard {
   atk: number
   def: number
   is_new: boolean
+  stars: number
 }
 
 /** Result returned by the open_pack RPC function */
