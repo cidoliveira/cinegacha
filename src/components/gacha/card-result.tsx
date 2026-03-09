@@ -1,3 +1,5 @@
+/** @deprecated Use GachaCard from @/components/card/gacha-card instead. Kept for reference during Phase 4 transition. */
+
 import type { PulledCard } from "@/lib/gacha/types"
 
 const rarityColorMap: Record<PulledCard["rarity"], string> = {

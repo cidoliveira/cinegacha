@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { openPack, getPackStatus } from "@/app/actions/gacha"
 import { PackStatusBar } from "@/components/gacha/pack-status-bar"
-import { CardResult } from "@/components/gacha/card-result"
+import { GachaCard } from "@/components/card/gacha-card"
 import type { PulledCard } from "@/lib/gacha/types"
 
 type PackState = "idle" | "opening" | "reveal"
@@ -148,7 +148,7 @@ export function PackOpener() {
         <div className="flex flex-1 flex-col items-center gap-8 py-8">
           <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {cards.map((card) => (
-              <CardResult key={card.card_id} card={card} />
+              <GachaCard key={card.card_id} card={card} size="md" />
             ))}
           </div>
 
