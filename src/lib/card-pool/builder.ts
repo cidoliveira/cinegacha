@@ -127,7 +127,8 @@ const ERA_SPLIT_GENRES: Set<number> = new Set([
   MOVIE_GENRES.thriller,
 ])
 
-const MAX_CAST_PER_MOVIE = 5
+const MAX_CAST_PER_MOVIE = 2
+const MAX_ACTORS = 500
 
 // Top 5 genres for refresh (simpler strategy)
 const REFRESH_GENRES = [
@@ -644,7 +645,14 @@ export async function seedCardPool(): Promise<SeedResult> {
   const actorsMap = new Map(rawActors.map((a) => [a.id, a]))
   const directorsMap = new Map(rawDirectors.map((d) => [d.id, d]))
   await supplementPeople(actorsMap, directorsMap, 150, 50)
-  const actors = Array.from(actorsMap.values())
+
+  // Cap actors by popularity to balance type distribution (~40% movie, ~43% actor, ~17% director)
+  let actors = Array.from(actorsMap.values())
+  if (actors.length > MAX_ACTORS) {
+    actors.sort((a, b) => b.popularity - a.popularity)
+    actors = actors.slice(0, MAX_ACTORS)
+    console.log(`[seed] Capped actors to ${MAX_ACTORS} (by popularity)`)
+  }
   const directors = Array.from(directorsMap.values())
 
   // 4. Validate images for all candidates
