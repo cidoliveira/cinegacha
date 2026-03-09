@@ -1,5 +1,6 @@
 "use client"
 
+import { MotionConfig } from "motion/react"
 import { useGuestSession } from "@/hooks/use-guest-session"
 import { PackOpener } from "@/components/gacha/pack-opener"
 
@@ -24,5 +25,9 @@ export default function GachaPage() {
     )
   }
 
-  return <PackOpener />
+  return (
+    <MotionConfig reducedMotion="user">
+      <PackOpener />
+    </MotionConfig>
+  )
 }
