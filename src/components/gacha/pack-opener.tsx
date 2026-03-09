@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { openPack, getPackStatus } from "@/app/actions/gacha"
 import { PackStatusBar } from "@/components/gacha/pack-status-bar"
 import { GachaCard } from "@/components/card/gacha-card"
+import { CardDetailModal } from "@/components/card/card-detail-modal"
 import type { PulledCard } from "@/lib/gacha/types"
 
 type PackState = "idle" | "opening" | "reveal"
@@ -25,6 +26,7 @@ export function PackOpener() {
   const [cards, setCards] = useState<PulledCard[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedCard, setSelectedCard] = useState<PulledCard | null>(null)
 
   // Fetch initial pack status on mount
   useEffect(() => {
@@ -78,6 +80,7 @@ export function PackOpener() {
   // Dismiss the reveal and return to idle
   function handleDismiss() {
     setCards([])
+    setSelectedCard(null)
     setState("idle")
   }
 
@@ -148,7 +151,12 @@ export function PackOpener() {
         <div className="flex flex-1 flex-col items-center gap-8 py-8">
           <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             {cards.map((card) => (
-              <GachaCard key={card.card_id} card={card} size="md" />
+              <GachaCard
+                key={card.card_id}
+                card={card}
+                size="md"
+                onClick={() => setSelectedCard(card)}
+              />
             ))}
           </div>
 
@@ -160,6 +168,12 @@ export function PackOpener() {
           </button>
         </div>
       )}
+
+      {/* Card detail modal -- renders regardless of state */}
+      <CardDetailModal
+        card={selectedCard}
+        onClose={() => setSelectedCard(null)}
+      />
     </div>
   )
 }
