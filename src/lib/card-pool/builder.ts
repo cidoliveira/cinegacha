@@ -609,8 +609,18 @@ function countByRarity(cards: CardPoolInsert[]): Record<string, number> {
 export async function seedCardPool(): Promise<SeedResult> {
   console.log("[seed] Starting card pool seed...")
 
-  // 1. Clear existing card pool
+  // 1. Clear existing data (user_cards first due to FK constraint, then card_pool)
   const supabase = createAdminClient()
+  console.log("[seed] Clearing existing user_cards...")
+  const { error: userCardsError } = await supabase
+    .from("user_cards")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000")
+
+  if (userCardsError) {
+    throw new Error(`Failed to clear user_cards: ${userCardsError.message}`)
+  }
+
   console.log("[seed] Clearing existing card pool...")
   const { error: deleteError } = await supabase
     .from("card_pool")

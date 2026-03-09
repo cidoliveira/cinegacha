@@ -58,9 +58,9 @@ export type TmdbPopularPeopleResponse = z.infer<
 export const tmdbMovieCreditSchema = z.object({
   id: z.number(),
   title: z.string().optional(),
-  vote_average: z.number(),
-  vote_count: z.number(),
-  popularity: z.number(),
+  vote_average: z.number().default(0),
+  vote_count: z.number().default(0),
+  popularity: z.number().default(0),
   character: z.string().optional(),
   job: z.string().optional(),
   department: z.string().optional(),
@@ -87,8 +87,8 @@ export const tmdbCastMemberSchema = z.object({
   name: z.string(),
   character: z.string().optional(),
   profile_path: z.string().nullable(),
-  order: z.number(),
-  popularity: z.number(),
+  order: z.number().default(999),
+  popularity: z.number().default(0),
   known_for_department: z.string().optional(),
 })
 
@@ -100,7 +100,7 @@ export const tmdbCrewMemberSchema = z.object({
   job: z.string(),
   department: z.string(),
   profile_path: z.string().nullable(),
-  popularity: z.number(),
+  popularity: z.number().default(0),
   known_for_department: z.string().optional(),
 })
 
