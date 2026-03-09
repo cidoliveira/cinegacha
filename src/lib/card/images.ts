@@ -8,9 +8,9 @@ export const CARD_IMAGE_SIZES = {
   /** Card thumbnail */
   sm: { movie: "w342", person: "w185" },
   /** Pack reveal */
-  md: { movie: "w500", person: "h632" },
+  md: { movie: "w500", person: "w185" },
   /** Detail modal */
-  lg: { movie: "w780", person: "h632" },
+  lg: { movie: "w780", person: "original" },
 } as const
 
 type ImageSize = keyof typeof CARD_IMAGE_SIZES
