@@ -73,7 +73,7 @@ export function CardRevealRow({
 
   return (
     <motion.div
-      className="flex flex-wrap justify-center gap-4"
+      className="flex flex-wrap justify-center gap-5"
       variants={rowVariants}
       initial="hidden"
       animate="visible"
@@ -81,7 +81,7 @@ export function CardRevealRow({
       {cards.map((card) => (
         <motion.div
           key={card.card_id}
-          className="w-[calc(50%-8px)] sm:w-[calc(33.333%-11px)] lg:w-[calc(20%-13px)]"
+          className="w-[calc(50%-10px)] sm:w-[calc(33.333%-14px)] lg:w-[calc(20%-16px)] lg:min-w-[180px]"
           variants={cardVariants}
         >
           <CardRevealSlot card={card}>

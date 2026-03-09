@@ -48,7 +48,7 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
 
   return (
     <Wrapper
-      className={`flex aspect-[5/7] w-full max-w-[280px] flex-col overflow-hidden rounded-lg bg-surface ${interactiveClasses}`}
+      className={`flex aspect-[5/7] w-full flex-col overflow-hidden rounded-lg bg-surface ${interactiveClasses}`}
       style={{
         borderWidth: isHighRarity ? 3 : 2,
         borderStyle: "solid",
