@@ -13,7 +13,6 @@ import { computeEffectiveStats } from "@/lib/card/stats"
 import { cardImageUrl } from "@/lib/card/images"
 import { RARITY_TIERS } from "@/lib/rarity/tiers"
 import { CardTypeBadge } from "@/components/card/card-type-badge"
-import { CardStars } from "@/components/card/card-stars"
 import { getCardDetail } from "@/app/actions/cards"
 
 interface CardDetailModalProps {
@@ -106,7 +105,7 @@ function DetailContent({
   stats,
 }: {
   detail: CardDisplayData
-  stats: { atk: number; def: number; displayStars: number }
+  stats: { atk: number; def: number; dupeCount: number }
 }) {
   const imageUrl = cardImageUrl(detail.image_path, detail.card_type, "lg")
   const rarityTier = RARITY_TIERS[detail.rarity]
@@ -157,15 +156,16 @@ function DetailContent({
           </span>
         </div>
 
-        {/* Stars */}
-        <div className="flex items-center gap-2">
-          <CardStars count={stats.displayStars} />
-          <span className="text-xs text-text-muted">
-            ({stats.displayStars}/5)
-          </span>
-        </div>
+        {/* Duplicate bonus indicator */}
+        {stats.dupeCount > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="rounded bg-green-400/10 px-2 py-0.5 text-xs font-semibold text-green-400">
+              +{stats.dupeCount * 10}% stats from duplicates
+            </span>
+          </div>
+        )}
 
-        {/* Stats with star bonus breakdown */}
+        {/* Stats */}
         <div className="flex gap-6">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-text-muted">ATK</span>

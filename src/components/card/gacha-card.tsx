@@ -5,24 +5,15 @@ import { cardImageUrl } from "@/lib/card/images"
 import { RARITY_TIERS } from "@/lib/rarity/tiers"
 import { CardTypeBadge } from "@/components/card/card-type-badge"
 import { CardStats } from "@/components/card/card-stats"
-import { CardStars } from "@/components/card/card-stars"
 
 type CardSize = "sm" | "md" | "lg"
 
-/**
- * Type-specific color tint applied to the info section top border.
- * Provides at-a-glance visual distinction between card types.
- */
 const TYPE_TINT: Record<PulledCard["card_type"], string> = {
   movie: "border-t-amber-500/40",
   actor: "border-t-sky-500/40",
   director: "border-t-violet-500/40",
 }
 
-/**
- * Responsive `sizes` hints for Next.js Image based on card size prop.
- * Helps the browser pick the optimal image resolution to download.
- */
 const IMAGE_SIZES: Record<CardSize, string> = {
   sm: "(max-width: 640px) 30vw, (max-width: 1024px) 20vw, 12vw",
   md: "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 18vw",
@@ -35,24 +26,9 @@ interface GachaCardProps {
   onClick?: () => void
 }
 
-/**
- * TCG-style gacha card with type-variant visual identity.
- *
- * Displays a portrait card (5:7 ratio) with:
- * - Rarity-colored border
- * - TMDB poster/profile image via Next.js Image
- * - Type badge (Movie / Actor / Director)
- * - Rarity label
- * - Card name
- * - Rarity tier text
- * - Effective ATK/DEF stats (with star bonus)
- * - Filled star indicators
- *
- * Visual type differentiation via color-tinted info section border.
- */
 export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
   const imageUrl = cardImageUrl(card.image_path, card.card_type, size)
-  const { atk, def, displayStars } = computeEffectiveStats(
+  const { atk, def, dupeCount } = computeEffectiveStats(
     card.atk,
     card.def,
     card.stars
@@ -63,6 +39,7 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
     card.rarity === "SSR" ||
     card.rarity === "UR" ||
     card.rarity === "LR"
+  const isDuplicate = card.is_new === false
 
   const Wrapper = onClick ? "button" : "div"
   const interactiveClasses = onClick
@@ -71,7 +48,7 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
 
   return (
     <Wrapper
-      className={`flex aspect-[5/7] flex-col overflow-hidden rounded-lg bg-surface ${interactiveClasses}`}
+      className={`flex aspect-[5/7] w-full max-w-[220px] flex-col overflow-hidden rounded-lg bg-surface ${interactiveClasses}`}
       style={{
         borderWidth: isHighRarity ? 3 : 2,
         borderStyle: "solid",
@@ -111,6 +88,13 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
         >
           {card.rarity}
         </span>
+
+        {/* Duplicate badge -- bottom right */}
+        {isDuplicate && (
+          <span className="absolute right-2 bottom-2 rounded bg-surface-elevated/90 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-green-400 backdrop-blur-sm">
+            +{dupeCount * 10}%
+          </span>
+        )}
       </div>
 
       {/* Info section (~40%) -- type-tinted top border */}
@@ -133,7 +117,6 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
 
         <div className="flex items-end justify-between">
           <CardStats atk={atk} def={def} />
-          <CardStars count={displayStars} />
         </div>
       </div>
     </Wrapper>

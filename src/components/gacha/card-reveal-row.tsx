@@ -73,13 +73,17 @@ export function CardRevealRow({
 
   return (
     <motion.div
-      className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
+      className="flex flex-wrap justify-center gap-4"
       variants={rowVariants}
       initial="hidden"
       animate="visible"
     >
       {cards.map((card) => (
-        <motion.div key={card.card_id} variants={cardVariants}>
+        <motion.div
+          key={card.card_id}
+          className="w-[calc(50%-8px)] sm:w-[calc(33.333%-11px)] lg:w-[calc(20%-13px)]"
+          variants={cardVariants}
+        >
           <CardRevealSlot card={card}>
             <GachaCard
               card={card}
