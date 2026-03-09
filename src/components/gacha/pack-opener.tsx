@@ -1,22 +1,27 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { AnimatePresence, motion } from "motion/react"
 import { openPack, getPackStatus } from "@/app/actions/gacha"
 import { PackStatusBar } from "@/components/gacha/pack-status-bar"
-import { GachaCard } from "@/components/card/gacha-card"
+import { PackVisual } from "@/components/gacha/pack-visual"
+import { CardRevealRow } from "@/components/gacha/card-reveal-row"
 import { CardDetailModal } from "@/components/card/card-detail-modal"
 import type { PulledCard } from "@/lib/gacha/types"
 
-type PackState = "idle" | "opening" | "reveal"
+type PackState = "idle" | "tearing" | "revealing" | "revealed"
 
 /**
  * Main pack opening orchestrator.
  *
- * State machine: idle -> opening -> reveal -> idle
+ * State machine: idle -> tearing -> revealing -> revealed -> idle
  *
  * On mount, fetches pack status. In idle, shows pack count + open button.
- * In opening, calls the openPack server action. In reveal, displays cards
- * until dismissed. Each pack must be dismissed before opening the next.
+ * In tearing, PackVisual plays the tear animation while openPack() runs
+ * concurrently in the background. After tear completes and server responds,
+ * cards are revealed one by one via CardRevealRow with staggered animation.
+ * In revealed, all cards are visible and clickable for detail modal.
+ * Dismissing returns to idle for the next pack.
  */
 export function PackOpener() {
   const [state, setState] = useState<PackState>("idle")
@@ -27,6 +32,9 @@ export function PackOpener() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedCard, setSelectedCard] = useState<PulledCard | null>(null)
+
+  // Store the openPack promise so tear animation and network run concurrently
+  const openPackPromiseRef = useRef<ReturnType<typeof openPack> | null>(null)
 
   // Fetch initial pack status on mount
   useEffect(() => {
@@ -52,14 +60,28 @@ export function PackOpener() {
     }
   }, [])
 
-  // Open a pack
-  async function handleOpenPack() {
+  // Start the pack opening sequence: fire server action and enter tearing state
+  function handleOpenPack() {
     if (packsAvailable <= 0) return
 
-    setState("opening")
     setError(null)
+    // Fire openPack() immediately -- do NOT await, let it run during tear animation
+    openPackPromiseRef.current = openPack()
+    setState("tearing")
+  }
 
-    const result = await openPack()
+  // Called when PackVisual finishes the tear animation
+  async function handleTearComplete() {
+    const promise = openPackPromiseRef.current
+    if (!promise) {
+      setError("Pack opening failed unexpectedly")
+      setState("idle")
+      return
+    }
+
+    // Await the stored promise (likely already resolved during ~0.5s tear)
+    const result = await promise
+    openPackPromiseRef.current = null
 
     if ("error" in result) {
       if (result.code === "NO_PACKS") {
@@ -74,7 +96,12 @@ export function PackOpener() {
     setPacksAvailable(result.data.packs_remaining)
     setPityCounter(result.data.pity_counter)
     setNextPackAt(result.data.next_pack_at)
-    setState("reveal")
+    setState("revealing")
+  }
+
+  // Called when CardRevealRow finishes staggering all cards
+  function handleRevealComplete() {
+    setState("revealed")
   }
 
   // Dismiss the reveal and return to idle
@@ -97,8 +124,8 @@ export function PackOpener() {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-8">
-      {/* Pack status bar -- always visible in idle */}
-      {state !== "reveal" && (
+      {/* Pack status bar -- hidden during card reveal states */}
+      {state === "idle" && (
         <PackStatusBar
           packsAvailable={packsAvailable}
           pityCounter={pityCounter}
@@ -107,67 +134,87 @@ export function PackOpener() {
         />
       )}
 
-      {/* Idle state: open pack button */}
-      {state === "idle" && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 py-12">
-          <button
-            onClick={handleOpenPack}
-            disabled={packsAvailable <= 0}
-            className={`font-display rounded-lg px-12 py-4 text-2xl tracking-wider transition-colors sm:text-3xl ${
-              packsAvailable > 0
-                ? "bg-accent text-text-primary hover:bg-accent-hover cursor-pointer"
-                : "bg-surface-elevated text-text-muted cursor-not-allowed"
-            }`}
+      <AnimatePresence mode="wait">
+        {/* Idle state: open pack button */}
+        {state === "idle" && (
+          <motion.div
+            key="idle"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-1 flex-col items-center justify-center gap-6 py-12"
           >
-            Open Pack
-          </button>
+            <button
+              onClick={handleOpenPack}
+              disabled={packsAvailable <= 0}
+              className={`font-display rounded-lg px-12 py-4 text-2xl tracking-wider transition-colors sm:text-3xl ${
+                packsAvailable > 0
+                  ? "bg-accent text-text-primary hover:bg-accent-hover cursor-pointer"
+                  : "bg-surface-elevated text-text-muted cursor-not-allowed"
+              }`}
+            >
+              Open Pack
+            </button>
 
-          {packsAvailable <= 0 && (
-            <p className="text-sm text-text-muted">
-              Browse your collection while you wait
-            </p>
-          )}
+            {packsAvailable <= 0 && (
+              <p className="text-sm text-text-muted">
+                Browse your collection while you wait
+              </p>
+            )}
 
-          {error && (
-            <p className="text-sm text-accent">{error}</p>
-          )}
-        </div>
-      )}
+            {error && (
+              <p className="text-sm text-accent">{error}</p>
+            )}
+          </motion.div>
+        )}
 
-      {/* Opening state: loading */}
-      {state === "opening" && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 py-12">
-          <button
-            disabled
-            className="font-display cursor-not-allowed rounded-lg bg-surface-elevated px-12 py-4 text-2xl tracking-wider text-text-muted sm:text-3xl"
+        {/* Tearing state: pack visual with tear animation */}
+        {state === "tearing" && (
+          <motion.div
+            key="tearing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-1 flex-col items-center justify-center py-12"
           >
-            Opening...
-          </button>
-        </div>
-      )}
+            <PackVisual onTearComplete={handleTearComplete} />
+          </motion.div>
+        )}
 
-      {/* Reveal state: show cards */}
-      {state === "reveal" && (
-        <div className="flex flex-1 flex-col items-center gap-8 py-8">
-          <div className="grid w-full grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {cards.map((card) => (
-              <GachaCard
-                key={card.card_id}
-                card={card}
-                size="md"
-                onClick={() => setSelectedCard(card)}
-              />
-            ))}
-          </div>
-
-          <button
-            onClick={handleDismiss}
-            className="font-display cursor-pointer rounded-lg border border-border bg-surface px-8 py-3 text-lg tracking-wider text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
+        {/* Revealing + Revealed states: card reveal row */}
+        {(state === "revealing" || state === "revealed") && (
+          <motion.div
+            key="cards"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+            className="flex flex-1 flex-col items-center gap-8 py-8"
           >
-            Continue
-          </button>
-        </div>
-      )}
+            <CardRevealRow
+              cards={cards}
+              onCardClick={setSelectedCard}
+              onRevealComplete={handleRevealComplete}
+            />
+
+            {state === "revealed" && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <button
+                  onClick={handleDismiss}
+                  className="font-display cursor-pointer rounded-lg border border-border bg-surface px-8 py-3 text-lg tracking-wider text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
+                >
+                  Continue
+                </button>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Card detail modal -- renders regardless of state */}
       <CardDetailModal
