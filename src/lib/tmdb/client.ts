@@ -3,15 +3,19 @@ import {
   tmdbDiscoverMovieResponseSchema,
   tmdbPopularPeopleResponseSchema,
   tmdbPersonMovieCreditsResponseSchema,
+  tmdbMovieCreditsResponseSchema,
 } from "./types"
 import type {
   TmdbDiscoverMovieResponse,
   TmdbPopularPeopleResponse,
   TmdbPersonMovieCreditsResponse,
+  TmdbMovieCreditsResponse,
 } from "./types"
 import {
   TMDB_IMAGE_BASE_URL,
   discoverMovies,
+  discoverMoviesByGenre,
+  movieCredits,
   popularPeople,
   personMovieCredits,
 } from "./endpoints"
@@ -122,4 +126,22 @@ export async function fetchPersonMovieCredits(
   const endpoint = personMovieCredits(personId)
   const data = await tmdbFetch(endpoint.path, endpoint.params)
   return tmdbPersonMovieCreditsResponseSchema.parse(data)
+}
+
+export async function fetchDiscoverMoviesByGenre(
+  genreId: number,
+  page: number,
+  options?: { releaseDateGte?: string; releaseDateLte?: string },
+): Promise<TmdbDiscoverMovieResponse> {
+  const endpoint = discoverMoviesByGenre(genreId, page, options)
+  const data = await tmdbFetch(endpoint.path, endpoint.params)
+  return tmdbDiscoverMovieResponseSchema.parse(data)
+}
+
+export async function fetchMovieCredits(
+  movieId: number,
+): Promise<TmdbMovieCreditsResponse> {
+  const endpoint = movieCredits(movieId)
+  const data = await tmdbFetch(endpoint.path, endpoint.params)
+  return tmdbMovieCreditsResponseSchema.parse(data)
 }
