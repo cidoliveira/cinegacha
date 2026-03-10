@@ -92,23 +92,23 @@ const MOVIE_GENRES = {
 } as const
 
 const GENRE_PAGE_COUNTS: Record<number, number> = {
-  [MOVIE_GENRES.drama]: 5,
-  [MOVIE_GENRES.comedy]: 4,
-  [MOVIE_GENRES.action]: 4,
-  [MOVIE_GENRES.thriller]: 3,
-  [MOVIE_GENRES.horror]: 3,
-  [MOVIE_GENRES.sciFi]: 3,
-  [MOVIE_GENRES.crime]: 3,
-  [MOVIE_GENRES.adventure]: 2,
-  [MOVIE_GENRES.romance]: 2,
-  [MOVIE_GENRES.animation]: 2,
-  [MOVIE_GENRES.fantasy]: 2,
-  [MOVIE_GENRES.mystery]: 2,
-  [MOVIE_GENRES.history]: 1,
-  [MOVIE_GENRES.war]: 1,
-  [MOVIE_GENRES.western]: 1,
-  [MOVIE_GENRES.music]: 1,
-  [MOVIE_GENRES.family]: 1,
+  [MOVIE_GENRES.drama]: 8,
+  [MOVIE_GENRES.comedy]: 6,
+  [MOVIE_GENRES.action]: 6,
+  [MOVIE_GENRES.thriller]: 5,
+  [MOVIE_GENRES.horror]: 5,
+  [MOVIE_GENRES.sciFi]: 5,
+  [MOVIE_GENRES.crime]: 5,
+  [MOVIE_GENRES.adventure]: 3,
+  [MOVIE_GENRES.romance]: 3,
+  [MOVIE_GENRES.animation]: 3,
+  [MOVIE_GENRES.fantasy]: 3,
+  [MOVIE_GENRES.mystery]: 3,
+  [MOVIE_GENRES.history]: 2,
+  [MOVIE_GENRES.war]: 2,
+  [MOVIE_GENRES.western]: 2,
+  [MOVIE_GENRES.music]: 2,
+  [MOVIE_GENRES.family]: 2,
 }
 
 // Era ranges for temporal diversity (top 4 genres only)
@@ -128,7 +128,8 @@ const ERA_SPLIT_GENRES: Set<number> = new Set([
 ])
 
 const MAX_CAST_PER_MOVIE = 2
-const MAX_ACTORS = 500
+const MAX_ACTORS = 300
+const MAX_DIRECTORS = 175
 
 // Top 5 genres for refresh (simpler strategy)
 const REFRESH_GENRES = [
@@ -646,14 +647,19 @@ export async function seedCardPool(): Promise<SeedResult> {
   const directorsMap = new Map(rawDirectors.map((d) => [d.id, d]))
   await supplementPeople(actorsMap, directorsMap, 150, 50)
 
-  // Cap actors by popularity to balance type distribution (~40% movie, ~43% actor, ~17% director)
+  // Cap people by popularity to balance type distribution (~60% movie, ~25% actor, ~15% director)
   let actors = Array.from(actorsMap.values())
   if (actors.length > MAX_ACTORS) {
     actors.sort((a, b) => b.popularity - a.popularity)
     actors = actors.slice(0, MAX_ACTORS)
     console.log(`[seed] Capped actors to ${MAX_ACTORS} (by popularity)`)
   }
-  const directors = Array.from(directorsMap.values())
+  let directors = Array.from(directorsMap.values())
+  if (directors.length > MAX_DIRECTORS) {
+    directors.sort((a, b) => b.popularity - a.popularity)
+    directors = directors.slice(0, MAX_DIRECTORS)
+    console.log(`[seed] Capped directors to ${MAX_DIRECTORS} (by popularity)`)
+  }
 
   // 4. Validate images for all candidates
   const validMovies = await validateImages(
