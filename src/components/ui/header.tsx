@@ -2,8 +2,7 @@ import Link from 'next/link'
 
 const navLinks = [
   { label: 'Packs', href: '/gacha' },
-  { label: 'Collection', href: '/' },
-  { label: 'Albums', href: '/' },
+  { label: 'Collection', href: '/collection' },
 ]
 
 export function Header() {
