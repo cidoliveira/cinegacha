@@ -1,0 +1,132 @@
+"use client"
+
+import { useState, useEffect, useCallback, useRef } from "react"
+import { useGuestSession } from "@/hooks/use-guest-session"
+import {
+  getCollectionPage,
+  getCollectionProgress,
+} from "@/app/actions/collection"
+import type {
+  CardTypeFilter,
+  RarityFilter,
+  CollectionSortKey,
+  CollectionCard,
+} from "@/app/actions/collection"
+import { CollectionHero } from "@/components/collection/collection-hero"
+import { CollectionFilterBar } from "@/components/collection/collection-filter-bar"
+import { CollectionGrid } from "@/components/collection/collection-grid"
+
+type Progress = {
+  collected: number
+  total: number
+  byType: { movie: number; actor: number; director: number }
+}
+
+export default function CollectionPage() {
+  const { isReady } = useGuestSession()
+
+  const [typeFilters, setTypeFilters] = useState<CardTypeFilter[]>([])
+  const [rarityFilters, setRarityFilters] = useState<RarityFilter[]>([])
+  const [sort, setSort] = useState<CollectionSortKey>("rarity")
+  const [cards, setCards] = useState<CollectionCard[]>([])
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [progress, setProgress] = useState<Progress | null>(null)
+
+  const fetchIdRef = useRef(0)
+
+  // Fetch progress once session is ready
+  useEffect(() => {
+    if (!isReady) return
+
+    getCollectionProgress().then((result) => {
+      if ("error" in result) {
+        console.error("Failed to fetch collection progress:", result.error)
+        return
+      }
+      setProgress(result)
+    })
+  }, [isReady])
+
+  // Reset grid when filters or sort change
+  useEffect(() => {
+    setCards([])
+    setPage(0)
+    setHasMore(true)
+  }, [typeFilters, rarityFilters, sort])
+
+  // Fetch page -- re-runs when page OR filters change (fetchId prevents stale writes)
+  useEffect(() => {
+    if (!isReady || !hasMore) return
+
+    const currentFetchId = ++fetchIdRef.current
+
+    setIsLoading(true)
+
+    getCollectionPage(page, {
+      types: typeFilters,
+      rarities: rarityFilters,
+      sort,
+    })
+      .then((result) => {
+        if (currentFetchId !== fetchIdRef.current) return // stale fetch
+
+        if ("error" in result) {
+          console.error("Failed to fetch collection page:", result.error)
+          return
+        }
+
+        setCards((prev) =>
+          page === 0 ? result.cards : [...prev, ...result.cards]
+        )
+        setHasMore(result.hasMore)
+      })
+      .finally(() => {
+        if (currentFetchId !== fetchIdRef.current) return
+        setIsLoading(false)
+      })
+  }, [page, typeFilters, rarityFilters, sort, isReady]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadMore = useCallback(() => {
+    if (isLoading || !hasMore) return
+    setPage((prev) => prev + 1)
+  }, [isLoading, hasMore])
+
+  // Session gate
+  if (!isReady) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
+        <h1 className="font-display text-4xl tracking-wider text-accent sm:text-5xl">
+          CineGacha
+        </h1>
+        <div className="mt-6 h-0.5 w-16 animate-pulse rounded bg-accent-muted" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-6 pb-12">
+      <CollectionHero
+        collected={progress?.collected ?? 0}
+        total={progress?.total ?? 0}
+        byType={progress?.byType ?? { movie: 0, actor: 0, director: 0 }}
+        isLoading={progress === null}
+      />
+      <CollectionFilterBar
+        typeFilters={typeFilters}
+        rarityFilters={rarityFilters}
+        sort={sort}
+        onTypeFiltersChange={setTypeFilters}
+        onRarityFiltersChange={setRarityFilters}
+        onSortChange={setSort}
+      />
+      <CollectionGrid
+        cards={cards}
+        isLoading={isLoading}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+      />
+    </div>
+  )
+}
