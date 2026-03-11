@@ -39,7 +39,7 @@ export function discoverMoviesByGenre(
     sort_by: "popularity.desc",
     "vote_count.gte": 50,
     include_adult: false,
-    without_genres: "99,10770",
+    without_genres: "99,10770,10402",
     with_genres: genreId,
     page,
   }

@@ -6,8 +6,8 @@
 --
 -- This migration:
 --   1. Updates open_pack RPC with rebalanced pull rates
---      Normal: C=55%, UC=22%, R=13%, SR=6%, SSR=2.5%, UR=1%, LR=0.5%
---      Pity SR+: SR=60%, SSR=25%, UR=10%, LR=5%
+--      Normal: C=75%, UC=13%, R=7%, SR=3%, SSR=1.2%, UR=0.6%, LR=0.2%
+--      Pity SR+: SR=60%, SSR=24%, UR=12%, LR=4%
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION public.open_pack(p_user_id UUID)
@@ -62,32 +62,32 @@ BEGIN
     -- Pity check FIRST: if counter >= 10, force SR+ on this card
     IF v_profile.pity_counter >= 10 THEN
       -- Roll among SR+ tiers with their relative weights
-      -- SR=6, SSR=2.5, UR=1, LR=0.5 -> total=10
-      v_roll := random() * 10;
-      IF v_roll < 6 THEN
+      -- SR=3, SSR=1.2, UR=0.6, LR=0.2 -> total=5
+      v_roll := random() * 5;
+      IF v_roll < 3 THEN
         v_rolled_tier := 'SR';
-      ELSIF v_roll < 8.5 THEN
+      ELSIF v_roll < 4.2 THEN
         v_rolled_tier := 'SSR';
-      ELSIF v_roll < 9.5 THEN
+      ELSIF v_roll < 4.8 THEN
         v_rolled_tier := 'UR';
       ELSE
         v_rolled_tier := 'LR';
       END IF;
     ELSE
       -- Normal roll: store random() once, use variable in all WHEN comparisons
-      -- New weights: C=55%, UC=22%, R=13%, SR=6%, SSR=2.5%, UR=1%, LR=0.5%
+      -- New weights: C=75%, UC=13%, R=7%, SR=3%, SSR=1.2%, UR=0.6%, LR=0.2%
       v_roll := random() * 100;
-      IF v_roll < 55 THEN
+      IF v_roll < 75 THEN
         v_rolled_tier := 'C';
-      ELSIF v_roll < 77 THEN
+      ELSIF v_roll < 88 THEN
         v_rolled_tier := 'UC';
-      ELSIF v_roll < 90 THEN
+      ELSIF v_roll < 95 THEN
         v_rolled_tier := 'R';
-      ELSIF v_roll < 96 THEN
+      ELSIF v_roll < 98 THEN
         v_rolled_tier := 'SR';
-      ELSIF v_roll < 98.5 THEN
+      ELSIF v_roll < 99.2 THEN
         v_rolled_tier := 'SSR';
-      ELSIF v_roll < 99.5 THEN
+      ELSIF v_roll < 99.8 THEN
         v_rolled_tier := 'UR';
       ELSE
         v_rolled_tier := 'LR';

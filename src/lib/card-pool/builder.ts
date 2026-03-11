@@ -92,23 +92,22 @@ const MOVIE_GENRES = {
 } as const
 
 const GENRE_PAGE_COUNTS: Record<number, number> = {
-  [MOVIE_GENRES.drama]: 8,
-  [MOVIE_GENRES.comedy]: 6,
-  [MOVIE_GENRES.action]: 6,
-  [MOVIE_GENRES.thriller]: 5,
-  [MOVIE_GENRES.horror]: 5,
-  [MOVIE_GENRES.sciFi]: 5,
-  [MOVIE_GENRES.crime]: 5,
-  [MOVIE_GENRES.adventure]: 3,
-  [MOVIE_GENRES.romance]: 3,
-  [MOVIE_GENRES.animation]: 3,
-  [MOVIE_GENRES.fantasy]: 3,
-  [MOVIE_GENRES.mystery]: 3,
-  [MOVIE_GENRES.history]: 2,
-  [MOVIE_GENRES.war]: 2,
-  [MOVIE_GENRES.western]: 2,
-  [MOVIE_GENRES.music]: 2,
-  [MOVIE_GENRES.family]: 2,
+  [MOVIE_GENRES.drama]: 20,
+  [MOVIE_GENRES.comedy]: 15,
+  [MOVIE_GENRES.action]: 15,
+  [MOVIE_GENRES.thriller]: 12,
+  [MOVIE_GENRES.horror]: 12,
+  [MOVIE_GENRES.sciFi]: 12,
+  [MOVIE_GENRES.crime]: 12,
+  [MOVIE_GENRES.adventure]: 8,
+  [MOVIE_GENRES.romance]: 8,
+  [MOVIE_GENRES.animation]: 6,
+  [MOVIE_GENRES.fantasy]: 8,
+  [MOVIE_GENRES.mystery]: 8,
+  [MOVIE_GENRES.history]: 5,
+  [MOVIE_GENRES.war]: 5,
+  [MOVIE_GENRES.western]: 5,
+  [MOVIE_GENRES.family]: 5,
 }
 
 // Era ranges for temporal diversity (top 4 genres only)
@@ -127,9 +126,9 @@ const ERA_SPLIT_GENRES: Set<number> = new Set([
   MOVIE_GENRES.thriller,
 ])
 
-const MAX_CAST_PER_MOVIE = 2
-const MAX_ACTORS = 300
-const MAX_DIRECTORS = 175
+const MAX_CAST_PER_MOVIE = 3
+const MAX_ACTORS = 750
+const MAX_DIRECTORS = 450
 
 // Top 5 genres for refresh (simpler strategy)
 const REFRESH_GENRES = [
@@ -380,7 +379,7 @@ async function processDirectorCredits(
     const directedCredits = credits.crew.filter((c) => c.job === "Director")
     const qualifying = directedCredits.filter((c) => c.vote_count >= 10)
 
-    if (qualifying.length < 3) continue
+    if (qualifying.length < 5) continue
 
     const avgMovieVote =
       qualifying.reduce((sum, c) => sum + c.vote_average, 0) / qualifying.length
@@ -397,7 +396,7 @@ async function processDirectorCredits(
     })
   }
 
-  console.log(`[seed] ${processed.length} directors with 3+ qualifying credits`)
+  console.log(`[seed] ${processed.length} directors with 5+ qualifying credits`)
   return processed
 }
 
