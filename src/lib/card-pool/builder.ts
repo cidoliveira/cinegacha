@@ -60,6 +60,7 @@ interface ProcessedPerson {
   avgMovieVote: number
   movieCreditCount: number
   careerConsistency: number
+  totalVoteCount: number
 }
 
 interface RarityEntity {
@@ -369,12 +370,14 @@ async function processActorCredits(
       .slice(0, TOP_N_CREDITS_FOR_AVG)
     const avgMovieVote =
       topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
+    const totalVoteCount = topCredits.reduce((sum, c) => sum + c.vote_count, 0)
 
     processed.push({
       person,
       avgMovieVote,
       movieCreditCount: credits.cast.length,
       careerConsistency: 0, // not used for actors
+      totalVoteCount,
     })
   }
 
@@ -398,7 +401,7 @@ async function processDirectorCredits(
     const directedCredits = credits.crew.filter((c) => c.job === "Director")
     const qualifying = directedCredits.filter((c) => c.vote_count >= 10)
 
-    if (qualifying.length < 5) continue
+    if (qualifying.length < 3) continue
 
     // Use top 10 best-rated directed credits for average
     const topCredits = [...qualifying]
@@ -406,6 +409,7 @@ async function processDirectorCredits(
       .slice(0, TOP_N_CREDITS_FOR_AVG)
     const avgMovieVote =
       topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
+    const totalVoteCount = topCredits.reduce((sum, c) => sum + c.vote_count, 0)
     const consistentCount = qualifying.filter(
       (c) => c.vote_average > 6.0,
     ).length
@@ -416,10 +420,11 @@ async function processDirectorCredits(
       avgMovieVote,
       movieCreditCount: directedCredits.length,
       careerConsistency,
+      totalVoteCount,
     })
   }
 
-  console.log(`[seed] ${processed.length} directors with 5+ qualifying credits`)
+  console.log(`[seed] ${processed.length} directors with 3+ qualifying credits`)
   return processed
 }
 
@@ -714,7 +719,7 @@ export async function seedCardPool(): Promise<SeedResult> {
   // 6. Compute rarity scores
   const movieEntities: RarityEntity[] = validMovies.map((m) => ({
     id: makeCardId("movie", m.id),
-    rarityScore: computeMovieRarityScore(m.popularity, m.vote_average),
+    rarityScore: computeMovieRarityScore(m.popularity, m.vote_average, m.vote_count),
   }))
 
   const actorEntities: RarityEntity[] = processedActors.map((a) => ({
@@ -723,6 +728,7 @@ export async function seedCardPool(): Promise<SeedResult> {
       a.person.popularity,
       a.avgMovieVote,
       a.movieCreditCount,
+      a.totalVoteCount,
     ),
   }))
 
@@ -732,6 +738,7 @@ export async function seedCardPool(): Promise<SeedResult> {
       d.person.popularity,
       d.avgMovieVote,
       d.movieCreditCount,
+      d.totalVoteCount,
     ),
   }))
 
@@ -858,7 +865,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
   // 6. Process NEW entities: compute rarity, assign tiers, compute stats, insert
   const newMovieEntities: RarityEntity[] = newMovies.map((m) => ({
     id: makeCardId("movie", m.id),
-    rarityScore: computeMovieRarityScore(m.popularity, m.vote_average),
+    rarityScore: computeMovieRarityScore(m.popularity, m.vote_average, m.vote_count),
   }))
   const newActorEntities: RarityEntity[] = newActors.map((a) => ({
     id: makeCardId("actor", a.person.id),
@@ -866,6 +873,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
       a.person.popularity,
       a.avgMovieVote,
       a.movieCreditCount,
+      a.totalVoteCount,
     ),
   }))
   const newDirectorEntities: RarityEntity[] = newDirectors.map((d) => ({
@@ -874,6 +882,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
       d.person.popularity,
       d.avgMovieVote,
       d.movieCreditCount,
+      d.totalVoteCount,
     ),
   }))
 
@@ -967,6 +976,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
         rarity_score: computeMovieRarityScore(
           movie.popularity,
           movie.vote_average,
+          movie.vote_count,
         ),
         popularity_snapshot: movie.popularity,
         pool_updated_at: now,
@@ -1015,6 +1025,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
           actor.person.popularity,
           actor.avgMovieVote,
           actor.movieCreditCount,
+          actor.totalVoteCount,
         ),
         popularity_snapshot: actor.person.popularity,
         pool_updated_at: now,
@@ -1062,6 +1073,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
           director.person.popularity,
           director.avgMovieVote,
           director.movieCreditCount,
+          director.totalVoteCount,
         ),
         popularity_snapshot: director.person.popularity,
         pool_updated_at: now,

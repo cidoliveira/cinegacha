@@ -13,47 +13,57 @@ import { PERCENTILE_BREAKPOINTS, type RarityTier } from "./tiers"
 // ---------------------------------------------------------------------------
 
 /**
- * Movie rarity score: popularity (log-scaled) weighted 30%, vote average 70%.
- * Quality-first: critically acclaimed films rank higher than viral mediocre ones.
+ * Movie rarity score: popularity 20%, vote average 50%, vote count (recognition) 30%.
+ * Vote count measures global recognition — widely-seen quality films rank highest.
+ * Log10 scales both popularity and vote_count to tame power-law distributions.
  */
 export function computeMovieRarityScore(
   popularity: number,
-  voteAverage: number
+  voteAverage: number,
+  voteCount: number
 ): number {
-  return Math.log10(popularity + 1) * 0.3 + voteAverage * 0.7
-}
-
-/**
- * Actor rarity score: popularity 15%, average movie vote 55%, career breadth 30%.
- * Quality-first: actors in great films rank high regardless of mainstream fame.
- */
-export function computeActorRarityScore(
-  popularity: number,
-  avgMovieVote: number,
-  movieCreditCount: number
-): number {
-  const careerBreadth = Math.min(movieCreditCount / 20, 1.0) * 10
   return (
-    Math.log10(popularity + 1) * 0.15 +
-    avgMovieVote * 0.55 +
-    careerBreadth * 0.3
+    Math.log10(popularity + 1) * 0.2 +
+    voteAverage * 0.5 +
+    Math.log10(voteCount + 1) * 0.3
   )
 }
 
 /**
- * Director rarity score: popularity 25%, average movie vote 45%, career breadth 30%.
- * Directors weight quality highest: acclaimed filmography over mainstream fame.
+ * Actor rarity score: popularity 10%, avg movie vote 40%, recognition 30%, career breadth 20%.
+ * Recognition = log10 sum of vote counts across top credits (how widely seen their films are).
+ */
+export function computeActorRarityScore(
+  popularity: number,
+  avgMovieVote: number,
+  movieCreditCount: number,
+  totalVoteCount: number
+): number {
+  const careerBreadth = Math.min(movieCreditCount / 20, 1.0) * 10
+  return (
+    Math.log10(popularity + 1) * 0.1 +
+    avgMovieVote * 0.4 +
+    Math.log10(totalVoteCount + 1) * 0.3 +
+    careerBreadth * 0.2
+  )
+}
+
+/**
+ * Director rarity score: popularity 10%, avg movie vote 40%, recognition 30%, career breadth 20%.
+ * Same recognition signal as actors — acclaimed + widely-seen filmography ranks highest.
  */
 export function computeDirectorRarityScore(
   popularity: number,
   avgMovieVote: number,
-  movieCreditCount: number
+  movieCreditCount: number,
+  totalVoteCount: number
 ): number {
   const careerBreadth = Math.min(movieCreditCount / 20, 1.0) * 10
   return (
-    Math.log10(popularity + 1) * 0.25 +
-    avgMovieVote * 0.45 +
-    careerBreadth * 0.3
+    Math.log10(popularity + 1) * 0.1 +
+    avgMovieVote * 0.4 +
+    Math.log10(totalVoteCount + 1) * 0.3 +
+    careerBreadth * 0.2
   )
 }
 
