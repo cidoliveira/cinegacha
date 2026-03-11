@@ -70,59 +70,47 @@ export async function getCollectionPage(
     return { error: "Not authenticated" }
   }
 
-  // Base query with !inner join -- mandatory for filtering on card_pool columns
+  // Query FROM card_pool with !inner join on user_cards so we can sort
+  // directly on card_pool columns (referencedTable ordering is unreliable)
   let query = supabase
-    .from("user_cards")
+    .from("card_pool")
     .select(
-      "stars, obtained_at, card_pool!inner(id, name, card_type, image_path, rarity, atk, def, rarity_score)",
-      { count: "exact" }
+      "id, name, card_type, image_path, rarity, atk, def, rarity_score, user_cards!inner(stars, obtained_at, user_id)"
     )
-    .eq("user_id", user.id)
+    .eq("user_cards.user_id", user.id)
 
-  // Type filter: apply only when filtering a subset (not all 3 types)
+  // Type filter
   if (filters.types.length > 0 && filters.types.length < 3) {
-    query = query.in("card_pool.card_type", filters.types)
+    query = query.in("card_type", filters.types)
   }
 
-  // Rarity filter: apply only when filtering a subset (not all 7 rarities)
+  // Rarity filter
   if (filters.rarities.length > 0 && filters.rarities.length < 7) {
-    query = query.in("card_pool.rarity", filters.rarities)
+    query = query.in("rarity", filters.rarities)
   }
 
-  // Sort
+  // Sort -- direct columns on card_pool, no referencedTable needed
   switch (filters.sort) {
     case "rarity":
-      query = query.order("rarity_score", {
-        referencedTable: "card_pool",
-        ascending: false,
-      })
+      query = query.order("rarity_score", { ascending: false })
       break
     case "name":
-      query = query.order("name", {
-        referencedTable: "card_pool",
-        ascending: true,
-      })
+      query = query.order("name", { ascending: true })
       break
     case "atk":
-      query = query.order("atk", {
-        referencedTable: "card_pool",
-        ascending: false,
-      })
+      query = query.order("atk", { ascending: false })
       break
     case "def":
-      query = query.order("def", {
-        referencedTable: "card_pool",
-        ascending: false,
-      })
+      query = query.order("def", { ascending: false })
       break
     case "date":
-      query = query.order("obtained_at", { ascending: false })
-      break
-    default:
-      query = query.order("rarity_score", {
-        referencedTable: "card_pool",
+      query = query.order("obtained_at", {
+        referencedTable: "user_cards",
         ascending: false,
       })
+      break
+    default:
+      query = query.order("rarity_score", { ascending: false })
   }
 
   // Pagination
@@ -139,28 +127,24 @@ export async function getCollectionPage(
 
   // Flatten the join result
   const cards: CollectionCard[] = (data ?? []).map((row) => {
-    const pool = row.card_pool as unknown as {
-      id: string
-      name: string
-      card_type: "movie" | "actor" | "director"
-      image_path: string | null
-      rarity: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
-      atk: number
-      def: number
-      rarity_score: number | null
-    }
+    const uc = row.user_cards as unknown as Array<{
+      stars: number
+      obtained_at: string
+      user_id: string
+    }>
+    const userCard = Array.isArray(uc) ? uc[0] : (uc as unknown as { stars: number; obtained_at: string })
 
     return {
-      card_id: pool.id,
-      name: pool.name,
-      card_type: pool.card_type,
-      image_path: pool.image_path,
-      rarity: pool.rarity,
-      atk: pool.atk,
-      def: pool.def,
-      stars: row.stars,
+      card_id: row.id,
+      name: row.name,
+      card_type: row.card_type as "movie" | "actor" | "director",
+      image_path: row.image_path,
+      rarity: row.rarity as "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR",
+      atk: row.atk,
+      def: row.def,
+      stars: userCard?.stars ?? 0,
       is_new: false as const,
-      obtained_at: row.obtained_at,
+      obtained_at: userCard?.obtained_at ?? "",
     }
   })
 

@@ -46,8 +46,8 @@ export function CollectionGrid({
   if (isLoading && cards.length === 0) {
     return (
       <div className="max-w-7xl mx-auto w-full px-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, i) => (
             <div
               key={i}
               className="aspect-[5/7] animate-pulse rounded-lg bg-surface-elevated"
@@ -80,7 +80,7 @@ export function CollectionGrid({
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {cards.map((card) => (
           <GachaCard
             key={card.card_id}
