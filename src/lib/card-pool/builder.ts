@@ -335,10 +335,14 @@ async function supplementPeople(
   )
 }
 
+const ANIMATION_GENRE_ID = 16
+const TOP_N_CREDITS_FOR_AVG = 10
+
 async function processActorCredits(
   actors: TmdbPerson[],
 ): Promise<ProcessedPerson[]> {
   const processed: ProcessedPerson[] = []
+  let skippedAnimation = 0
 
   for (let i = 0; i < actors.length; i++) {
     const person = actors[i]
@@ -350,8 +354,21 @@ async function processActorCredits(
 
     if (qualifying.length < 3) continue
 
+    // Skip animation-dominant actors (>50% of credits are animation genre)
+    const animationCount = qualifying.filter((c) =>
+      c.genre_ids.includes(ANIMATION_GENRE_ID),
+    ).length
+    if (animationCount / qualifying.length > 0.5) {
+      skippedAnimation++
+      continue
+    }
+
+    // Use top 10 best-rated credits for average (rewards quality peaks)
+    const topCredits = [...qualifying]
+      .sort((a, b) => b.vote_average - a.vote_average)
+      .slice(0, TOP_N_CREDITS_FOR_AVG)
     const avgMovieVote =
-      qualifying.reduce((sum, c) => sum + c.vote_average, 0) / qualifying.length
+      topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
 
     processed.push({
       person,
@@ -361,7 +378,9 @@ async function processActorCredits(
     })
   }
 
-  console.log(`[seed] ${processed.length} actors with 3+ qualifying credits`)
+  console.log(
+    `[seed] ${processed.length} actors with 3+ qualifying credits (${skippedAnimation} animation-dominant skipped)`,
+  )
   return processed
 }
 
@@ -381,8 +400,12 @@ async function processDirectorCredits(
 
     if (qualifying.length < 5) continue
 
+    // Use top 10 best-rated directed credits for average
+    const topCredits = [...qualifying]
+      .sort((a, b) => b.vote_average - a.vote_average)
+      .slice(0, TOP_N_CREDITS_FOR_AVG)
     const avgMovieVote =
-      qualifying.reduce((sum, c) => sum + c.vote_average, 0) / qualifying.length
+      topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
     const consistentCount = qualifying.filter(
       (c) => c.vote_average > 6.0,
     ).length

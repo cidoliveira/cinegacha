@@ -66,6 +66,7 @@ export const tmdbMovieCreditSchema = z.object({
   department: z.string().optional(),
   release_date: z.string().optional(),
   poster_path: z.string().nullable().optional(),
+  genre_ids: z.array(z.number()).default([]),
 })
 
 export type TmdbMovieCredit = z.infer<typeof tmdbMovieCreditSchema>

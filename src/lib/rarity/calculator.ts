@@ -13,19 +13,19 @@ import { PERCENTILE_BREAKPOINTS, type RarityTier } from "./tiers"
 // ---------------------------------------------------------------------------
 
 /**
- * Movie rarity score: popularity (log-scaled) weighted 60%, vote average 40%.
- * Log10 tames TMDB's power-law popularity distribution.
+ * Movie rarity score: popularity (log-scaled) weighted 30%, vote average 70%.
+ * Quality-first: critically acclaimed films rank higher than viral mediocre ones.
  */
 export function computeMovieRarityScore(
   popularity: number,
   voteAverage: number
 ): number {
-  return Math.log10(popularity + 1) * 0.6 + voteAverage * 0.4
+  return Math.log10(popularity + 1) * 0.3 + voteAverage * 0.7
 }
 
 /**
- * Actor rarity score: popularity 50%, average movie vote 30%, career breadth 20%.
- * Career breadth = min(movieCreditCount / 20, 1) scaled to 0-10 range.
+ * Actor rarity score: popularity 15%, average movie vote 55%, career breadth 30%.
+ * Quality-first: actors in great films rank high regardless of mainstream fame.
  */
 export function computeActorRarityScore(
   popularity: number,
@@ -34,15 +34,15 @@ export function computeActorRarityScore(
 ): number {
   const careerBreadth = Math.min(movieCreditCount / 20, 1.0) * 10
   return (
-    Math.log10(popularity + 1) * 0.5 +
-    avgMovieVote * 0.3 +
-    careerBreadth * 0.2
+    Math.log10(popularity + 1) * 0.15 +
+    avgMovieVote * 0.55 +
+    careerBreadth * 0.3
   )
 }
 
 /**
- * Director rarity score: popularity 40%, average movie vote 40%, career breadth 20%.
- * Directors weight quality higher than actors (0.4 vs 0.3 for vote average).
+ * Director rarity score: popularity 25%, average movie vote 45%, career breadth 30%.
+ * Directors weight quality highest: acclaimed filmography over mainstream fame.
  */
 export function computeDirectorRarityScore(
   popularity: number,
@@ -51,9 +51,9 @@ export function computeDirectorRarityScore(
 ): number {
   const careerBreadth = Math.min(movieCreditCount / 20, 1.0) * 10
   return (
-    Math.log10(popularity + 1) * 0.4 +
-    avgMovieVote * 0.4 +
-    careerBreadth * 0.2
+    Math.log10(popularity + 1) * 0.25 +
+    avgMovieVote * 0.45 +
+    careerBreadth * 0.3
   )
 }
 
