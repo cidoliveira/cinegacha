@@ -11,6 +11,8 @@ import { createClient } from "@/lib/supabase/client"
  * - Returns isReady=true once session is confirmed, and userId for the authenticated user
  * - On error, enters degraded mode (isReady=true, userId=null) so the UI can show
  *   an error when the user tries to open packs
+ * - Subscribes to SIGNED_OUT events to automatically re-create an anonymous session
+ *   after signOut() -- without this, useEffect only runs on mount and never recovers
  */
 export function useGuestSession() {
   const [isReady, setIsReady] = useState(false)
@@ -41,7 +43,21 @@ export function useGuestSession() {
     }
 
     ensureSession()
-  }, [supabase])
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        // Session was destroyed (user signed out) -- create fresh anon session
+        ensureSession()
+      }
+      if (session?.user) {
+        setUserId(session.user.id)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return { isReady, userId }
 }
