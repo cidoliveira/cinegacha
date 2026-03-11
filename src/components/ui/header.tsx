@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useAuthState } from "@/hooks/use-auth-state"
 import { AuthModal } from "@/components/auth/auth-modal"
 import { UserMenu } from "@/components/auth/user-menu"
-import { signOut } from "@/app/actions/auth"
+import { createClient } from "@/lib/supabase/client"
 
 const navLinks = [
   { label: "Packs", href: "/gacha" },
@@ -17,10 +17,10 @@ export function Header() {
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   async function handleSignOut() {
-    await signOut()
-    // After signOut, useGuestSession's onAuthStateChange subscription detects
-    // SIGNED_OUT and calls ensureSession() to create a fresh anonymous session.
-    // useAuthState also fires router.refresh(). No additional client-side code needed.
+    // Sign out on the client so onAuthStateChange fires SIGNED_OUT,
+    // which triggers useGuestSession to create a fresh anonymous session.
+    const supabase = createClient()
+    await supabase.auth.signOut()
   }
 
   return (
