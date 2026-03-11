@@ -191,7 +191,7 @@ function ModalContent({
           </span>
         </div>
 
-        {/* Album membership */}
+        {/* Album membership -- disabled, uncomment to re-enable
         {albumMembership.length > 0 && (
           <div className="flex flex-col gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
@@ -208,7 +208,7 @@ function ModalContent({
               ))}
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </>
   )

@@ -18,7 +18,7 @@ import { CollectionHero } from "@/components/collection/collection-hero"
 import { CollectionFilterBar } from "@/components/collection/collection-filter-bar"
 import { CollectionGrid } from "@/components/collection/collection-grid"
 import { CollectionDetailModal } from "@/components/collection/collection-detail-modal"
-import { AlbumSection } from "@/components/collection/album-section"
+// import { AlbumSection } from "@/components/collection/album-section"
 
 type Progress = {
   collected: number
@@ -63,13 +63,14 @@ export default function CollectionPage() {
       setProgress(result)
     })
 
-    getAlbumsWithProgress().then((result) => {
-      if ("error" in result) {
-        console.error("Failed to fetch albums:", result.error)
-        return
-      }
-      setAlbums(result)
-    })
+    // Albums disabled -- uncomment to re-enable
+    // getAlbumsWithProgress().then((result) => {
+    //   if ("error" in result) {
+    //     console.error("Failed to fetch albums:", result.error)
+    //     return
+    //   }
+    //   setAlbums(result)
+    // })
   }, [isReady])
 
   // Reset grid when filters or sort change
@@ -156,10 +157,11 @@ export default function CollectionPage() {
         onLoadMore={loadMore}
         onCardClick={setSelectedCard}
       />
+      {/* Albums disabled -- uncomment to re-enable
       <AlbumSection
         albums={albums}
         collectedCardMap={allCardsRef.current}
-      />
+      /> */}
       <CollectionDetailModal
         card={selectedCard}
         albumMembership={albumMembership}

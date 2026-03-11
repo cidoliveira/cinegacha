@@ -129,7 +129,7 @@ const ERA_SPLIT_GENRES: Set<number> = new Set([
 
 const MAX_CAST_PER_MOVIE = 3
 const MAX_ACTORS = 750
-const MAX_DIRECTORS = 450
+const MAX_DIRECTORS = 400
 
 // Top 5 genres for refresh (simpler strategy)
 const REFRESH_GENRES = [
@@ -261,10 +261,12 @@ async function extractPeopleFromMovies(movieIds: number[]): Promise<{
       }
     }
 
-    // Extract directors
+    // Extract directors (only people whose primary department is Directing)
     const directors = credits.crew.filter(
       (c: TmdbCrewMember) =>
-        c.job === "Director" && c.profile_path !== null,
+        c.job === "Director" &&
+        c.profile_path !== null &&
+        (!c.known_for_department || c.known_for_department === "Directing"),
     )
 
     for (const member of directors) {
@@ -274,8 +276,7 @@ async function extractPeopleFromMovies(movieIds: number[]): Promise<{
           name: member.name,
           profile_path: member.profile_path,
           popularity: member.popularity,
-          known_for_department:
-            member.known_for_department ?? "Directing",
+          known_for_department: "Directing",
         })
       }
     }
