@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useAuthState } from "@/hooks/use-auth-state"
 import { AuthModal } from "@/components/auth/auth-modal"
@@ -57,8 +57,10 @@ export function Header() {
         </div>
       </nav>
 
-      {/* Auth modal -- position-fixed via native dialog, DOM placement irrelevant */}
-      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      {/* Auth modal -- Suspense required because AuthModal uses useSearchParams */}
+      <Suspense fallback={null}>
+        <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      </Suspense>
     </header>
   )
 }

@@ -18,6 +18,7 @@ import { CollectionHero } from "@/components/collection/collection-hero"
 import { CollectionFilterBar } from "@/components/collection/collection-filter-bar"
 import { CollectionGrid } from "@/components/collection/collection-grid"
 import { CollectionDetailModal } from "@/components/collection/collection-detail-modal"
+import { SaveTooltip } from "@/components/collection/save-tooltip"
 // import { AlbumSection } from "@/components/collection/album-section"
 
 type Progress = {
@@ -136,6 +137,9 @@ export default function CollectionPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-12">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6">
+        <SaveTooltip />
+      </div>
       <CollectionHero
         collected={progress?.collected ?? 0}
         total={progress?.total ?? 0}
