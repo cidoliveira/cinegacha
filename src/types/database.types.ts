@@ -214,6 +214,10 @@ export interface Database {
         Args: { p_user_id: string }
         Returns: Json
       }
+      migrate_anon_to_user: {
+        Args: { p_anon_id: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
