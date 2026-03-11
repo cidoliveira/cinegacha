@@ -5,7 +5,7 @@
  * - Pool distribution (tiers.ts targetPct): determines how many cards of each rarity
  *   exist in the card_pool table (C=30%, UC=25%, R=20%, etc.)
  * - Pull weights (below): probability of rolling each tier when opening a pack
- *   (C=40%, UC=25%, R=18%, etc.)
+ *   (C=55%, UC=22%, R=13%, etc.)
  *
  * Common cards are more likely to be pulled than their pool proportion, while rare
  * cards are less likely -- the standard gacha pattern.
@@ -28,13 +28,15 @@ export const PITY_THRESHOLD = 10
  * These weights are used in the Postgres RPC function for the two-step
  * weighted random: first roll a rarity tier, then pick a random card
  * from that tier.
+ *
+ * New distribution: C=55%, UC=22%, R=13%, SR=6%, SSR=2.5%, UR=1%, LR=0.5%
  */
 export const PULL_WEIGHTS = {
-  C: 40,
-  UC: 25,
-  R: 18,
-  SR: 10,
-  SSR: 5,
-  UR: 1.5,
+  C: 55,
+  UC: 22,
+  R: 13,
+  SR: 6,
+  SSR: 2.5,
+  UR: 1,
   LR: 0.5,
 } as const

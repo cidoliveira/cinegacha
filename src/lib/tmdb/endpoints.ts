@@ -37,7 +37,7 @@ export function discoverMoviesByGenre(
 ): Endpoint {
   const params: Record<string, string | number | boolean> = {
     sort_by: "popularity.desc",
-    "vote_count.gte": 200,
+    "vote_count.gte": 50,
     include_adult: false,
     without_genres: "99,10770",
     with_genres: genreId,
