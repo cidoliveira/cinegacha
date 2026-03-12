@@ -5,6 +5,7 @@ import { cardImageUrl } from "@/lib/card/images"
 import { RARITY_TIERS } from "@/lib/rarity/tiers"
 import { CardTypeBadge } from "@/components/card/card-type-badge"
 import { CardStats } from "@/components/card/card-stats"
+import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
 
 type CardSize = "sm" | "md" | "lg"
 
@@ -23,10 +24,11 @@ const IMAGE_SIZES: Record<CardSize, string> = {
 interface GachaCardProps {
   card: PulledCard
   size?: CardSize
+  context?: "grid" | "modal" | "reveal"
   onClick?: () => void
 }
 
-export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
+export function GachaCard({ card, size = "md", context = "grid", onClick }: GachaCardProps) {
   const imageUrl = cardImageUrl(card.image_path, card.card_type, size)
   const { atk, def, dupeCount } = computeEffectiveStats(
     card.atk,
@@ -41,6 +43,7 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
     card.rarity === "LR"
   const isDuplicate = card.is_new === false
 
+  const isFoilContext = context === "modal" || context === "reveal"
   const Wrapper = onClick ? "button" : "div"
   const interactiveClasses = onClick
     ? "cursor-pointer transition-transform hover:scale-[1.02]"
@@ -48,7 +51,7 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
 
   return (
     <Wrapper
-      className={`flex aspect-[5/7] w-full flex-col overflow-hidden rounded-lg bg-surface ${interactiveClasses}`}
+      className={`flex aspect-[5/7] w-full flex-col overflow-hidden rounded-lg bg-surface ${isFoilContext ? "foil-card" : ""} ${interactiveClasses}`}
       style={{
         borderWidth: isHighRarity ? 3 : 2,
         borderStyle: "solid",
@@ -72,6 +75,11 @@ export function GachaCard({ card, size = "md", onClick }: GachaCardProps) {
               {card.name}
             </span>
           </div>
+        )}
+
+        {/* Foil overlay -- modal/reveal contexts only, renders above image */}
+        {isFoilContext && (
+          <RarityFoilOverlay rarity={card.rarity} context={context as "modal" | "reveal"} />
         )}
 
         {/* Type badge -- top left */}
