@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { openPack, getPackStatus } from "@/app/actions/gacha"
+import { openPack, getPackStatus, refillPacksAd } from "@/app/actions/gacha"
 import { PackStatusBar } from "@/components/gacha/pack-status-bar"
 import { PackVisual } from "@/components/gacha/pack-visual"
 import { CardRevealRow } from "@/components/gacha/card-reveal-row"
 import { CardDetailModal } from "@/components/card/card-detail-modal"
 import type { PulledCard } from "@/lib/gacha/types"
+import { useRewardedAd } from "@/hooks/use-rewarded-ad"
 
 type PackState = "idle" | "tearing" | "revealing" | "revealed"
 
@@ -32,6 +33,7 @@ export function PackOpener() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedCard, setSelectedCard] = useState<PulledCard | null>(null)
+  const rewardedAd = useRewardedAd()
 
   // Store the openPack promise so tear animation and network run concurrently
   const openPackPromiseRef = useRef<ReturnType<typeof openPack> | null>(null)
@@ -111,6 +113,24 @@ export function PackOpener() {
     setState("idle")
   }
 
+  // Watch ad to refill packs to 10
+  async function handleWatchAd() {
+    try {
+      await rewardedAd.show()
+      // Ad completed — call server to refill
+      const result = await refillPacksAd()
+      if ("data" in result) {
+        setPacksAvailable(result.data.packs_available)
+        setPityCounter(result.data.pity_counter)
+        setNextPackAt(result.data.next_pack_at)
+      } else {
+        setError(result.error)
+      }
+    } catch {
+      // Ad was dismissed or failed — do nothing
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
@@ -155,9 +175,13 @@ export function PackOpener() {
             </button>
 
             {packsAvailable <= 0 && (
-              <p className="text-sm text-text-muted">
-                Browse your collection while you wait
-              </p>
+              <button
+                onClick={handleWatchAd}
+                disabled={rewardedAd.isShowing || !rewardedAd.isLoaded}
+                className="cursor-pointer border-b border-text-muted pb-0.5 text-sm text-text-secondary transition-colors hover:border-text-primary hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {rewardedAd.isShowing ? "Watching ad…" : "Watch ad for 10 packs"}
+              </button>
             )}
 
             {error && (
