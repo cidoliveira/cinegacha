@@ -75,14 +75,17 @@
     }
   }
 
-  /* Pack foil sheen -- slow diagonal sweep */
-  --animate-pack-sheen: pack-sheen 4s ease-in-out infinite;
+  /* Pack foil sheen -- sweep once then rest */
+  --animate-pack-sheen: pack-sheen 5s ease-in-out infinite;
   @keyframes pack-sheen {
     0% {
-      background-position: -150% -150%;
+      background-position: -100% -100%;
+    }
+    45% {
+      background-position: 200% 200%;
     }
     100% {
-      background-position: 250% 250%;
+      background-position: 200% 200%;
     }
   }
 }

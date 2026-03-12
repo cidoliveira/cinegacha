@@ -51,7 +51,7 @@ export function PackVisual({ onTearComplete }: PackVisualProps) {
       {/* Top half */}
       <div
         className="pack-top pointer-events-none absolute inset-0"
-        style={{ clipPath: "inset(0 0 50% 0)" }}
+        style={{ clipPath: "inset(0 0 49.5% 0)" }}
         aria-hidden="true"
       >
         <PackFace />
@@ -60,7 +60,7 @@ export function PackVisual({ onTearComplete }: PackVisualProps) {
       {/* Bottom half */}
       <div
         className="pack-bottom pointer-events-none absolute inset-0"
-        style={{ clipPath: "inset(50% 0 0 0)" }}
+        style={{ clipPath: "inset(49.5% 0 0 0)" }}
         aria-hidden="true"
       >
         <PackFace />
@@ -163,7 +163,8 @@ function PackFace() {
               transparent 80%
             )
           `,
-          backgroundSize: "200% 200%",
+          backgroundSize: "300% 300%",
+          backgroundRepeat: "no-repeat",
         }}
       />
 
@@ -175,19 +176,8 @@ function PackFace() {
         }}
       />
 
-      {/* Fold/crease lines -- simulates foil wrapping */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-[25%] left-[10%] right-[10%] h-px bg-white/[0.08]" />
-        <div className="absolute top-[75%] left-[10%] right-[10%] h-px bg-black/[0.06]" />
-        <div className="absolute top-[12%] bottom-[12%] left-[20%] w-px bg-white/[0.05]" />
-        <div className="absolute top-[12%] bottom-[12%] right-[20%] w-px bg-black/[0.04]" />
-      </div>
-
       {/* Central branding area */}
       <div className="relative z-10 flex flex-col items-center gap-2">
-        {/* Decorative rule */}
-        <div className="h-px w-12 bg-gradient-to-r from-transparent via-black/20 to-transparent" />
-
         {/* Logo -- dark embossed on light foil */}
         <span
           className="font-display text-[32px] italic leading-none"
@@ -208,34 +198,6 @@ function PackFace() {
         >
           Booster Pack
         </span>
-
-        {/* Decorative rule */}
-        <div className="h-px w-12 bg-gradient-to-r from-transparent via-black/20 to-transparent" />
-      </div>
-
-      {/* Accent stripe -- subtle red band */}
-      <div
-        className="pointer-events-none absolute left-0 right-0 top-[38%] h-[1px]"
-        style={{
-          background: "linear-gradient(90deg, transparent 15%, rgba(230, 57, 70, 0.25) 50%, transparent 85%)",
-        }}
-      />
-      <div
-        className="pointer-events-none absolute left-0 right-0 bottom-[38%] h-[1px]"
-        style={{
-          background: "linear-gradient(90deg, transparent 15%, rgba(230, 57, 70, 0.25) 50%, transparent 85%)",
-        }}
-      />
-
-      {/* Tear line -- perforated dots across center */}
-      <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 flex items-center justify-center gap-[3px]">
-        {Array.from({ length: 28 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-[1px] w-[3px] rounded-full"
-            style={{ backgroundColor: "rgba(0,0,0,0.12)" }}
-          />
-        ))}
       </div>
 
       {/* Tap hint */}
