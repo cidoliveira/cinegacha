@@ -83,13 +83,11 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
         )}
 
         {/* Type badge -- top left */}
-        <div className="absolute top-2 left-2">
-          <CardTypeBadge type={card.card_type} />
-        </div>
+        <CardTypeBadge type={card.card_type} className="absolute top-2 left-2" />
 
         {/* Rarity label -- top right */}
         <span
-          className="absolute top-2 right-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm"
+          className="absolute top-2 right-2 inline-flex items-center rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm"
           style={{
             color: `var(--color-rarity-${card.rarity.toLowerCase()})`,
           }}
@@ -123,7 +121,7 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
           </span>
         </div>
 
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-center">
           <CardStats atk={atk} def={def} />
         </div>
       </div>

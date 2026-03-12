@@ -15,12 +15,12 @@ const TYPE_CONFIG: Record<
  * Renders a small pill-shaped badge with a unicode symbol prefix
  * and type-tinted text. Positioned by the parent component.
  */
-export function CardTypeBadge({ type }: { type: CardType }) {
+export function CardTypeBadge({ type, className }: { type: CardType; className?: string }) {
   const config = TYPE_CONFIG[type]
 
   return (
     <span
-      className={`inline-flex items-center rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm ${config.textColor}`}
+      className={`inline-flex items-center rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm ${config.textColor} ${className ?? ""}`}
     >
       {config.label}
     </span>

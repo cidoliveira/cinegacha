@@ -65,7 +65,7 @@ export function CollectionDetailModal({
       ref={dialogRef}
       onClose={handleDialogClose}
       onClick={handleBackdropClick}
-      className="m-auto max-w-md rounded-xl border border-border bg-surface p-0 backdrop:bg-black/80"
+      className="m-auto w-full max-w-md rounded-xl border border-border bg-surface p-0 backdrop:bg-black/80"
     >
       <div className="relative max-h-[90vh] overflow-y-auto overflow-x-hidden">
         {/* Close button */}
