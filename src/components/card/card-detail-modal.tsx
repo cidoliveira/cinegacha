@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
+import Tilt from "react-parallax-tilt"
+import { useReducedMotion } from "motion/react"
 import type { PulledCard } from "@/lib/gacha/types"
 import type {
   CardDisplayData,
@@ -14,6 +16,9 @@ import { cardImageUrl } from "@/lib/card/images"
 import { RARITY_TIERS } from "@/lib/rarity/tiers"
 import { CardTypeBadge } from "@/components/card/card-type-badge"
 import { getCardDetail } from "@/app/actions/cards"
+import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
+import { CardShareImage, downloadShareImage } from "@/components/card/card-share-image"
+import { useTilt } from "@/hooks/use-tilt"
 
 interface CardDetailModalProps {
   card: PulledCard | null
@@ -114,10 +119,52 @@ function DetailContent({
   const atkBonus = stats.atk - baseAtk
   const defBonus = stats.def - baseDef
 
+  const shareRef = useRef<HTMLDivElement>(null)
+  const foilRef = useRef<HTMLDivElement>(null)
+  const [isSharing, setIsSharing] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  const { handlePointerMove, handlePointerLeave } = useTilt(foilRef)
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(hover: none)").matches)
+  }, [])
+
+  async function handleShare() {
+    if (!shareRef.current) return
+    setIsSharing(true)
+    try {
+      await downloadShareImage(shareRef.current, detail.name)
+    } catch (err) {
+      console.error("Share image generation failed:", err)
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  const tiltEnabled = !isTouchDevice && !prefersReducedMotion
+
   return (
     <>
-      {/* Large image */}
-      <div className="relative aspect-[5/7] w-full overflow-hidden rounded-t-xl">
+      {/* Large image with tilt and foil */}
+      <Tilt
+        tiltMaxAngleX={12}
+        tiltMaxAngleY={12}
+        perspective={600}
+        scale={1.02}
+        transitionSpeed={300}
+        gyroscope={false}
+        tiltEnable={tiltEnabled}
+        className="relative aspect-[5/7] w-full overflow-hidden rounded-t-xl"
+      >
+        {/* Foil tracking layer -- receives pointer events for CSS var tracking */}
+        <div
+          ref={foilRef}
+          className="absolute inset-0"
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
+        />
+
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -134,7 +181,10 @@ function DetailContent({
             </span>
           </div>
         )}
-      </div>
+
+        {/* Foil overlay -- rendered above image, C/UC return null internally */}
+        <RarityFoilOverlay rarity={detail.rarity} context="modal" />
+      </Tilt>
 
       {/* Card info */}
       <div className="flex flex-col gap-4 p-5">
@@ -196,6 +246,28 @@ function DetailContent({
           cardType={detail.card_type}
           metadata={detail.metadata}
         />
+
+        {/* Share button */}
+        <button
+          type="button"
+          onClick={handleShare}
+          disabled={isSharing}
+          className="mt-1 w-full cursor-pointer rounded-lg border border-border bg-surface-elevated px-4 py-2 font-display text-sm tracking-wider text-text-secondary transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isSharing ? "Generating..." : "Share Card"}
+        </button>
+      </div>
+
+      {/* Off-screen share card -- must NOT be display:none for html-to-image */}
+      <div
+        style={{
+          position: "fixed",
+          top: "-9999px",
+          left: "-9999px",
+          pointerEvents: "none",
+        }}
+      >
+        <CardShareImage card={detail} containerRef={shareRef} />
       </div>
     </>
   )

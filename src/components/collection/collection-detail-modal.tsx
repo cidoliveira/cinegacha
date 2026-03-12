@@ -1,12 +1,17 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
+import Tilt from "react-parallax-tilt"
+import { useReducedMotion } from "motion/react"
 import type { CollectionCard } from "@/app/actions/collection"
 import { computeEffectiveStats } from "@/lib/card/stats"
 import { cardImageUrl } from "@/lib/card/images"
 import { RARITY_TIERS } from "@/lib/rarity/tiers"
 import { CardTypeBadge } from "@/components/card/card-type-badge"
+import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
+import { CardShareImage, downloadShareImage } from "@/components/card/card-share-image"
+import { useTilt } from "@/hooks/use-tilt"
 
 interface CollectionDetailModalProps {
   card: CollectionCard | null
@@ -100,16 +105,61 @@ function ModalContent({
   const atkBonus = stats.atk - card.atk
   const defBonus = stats.def - card.def
 
+  const shareRef = useRef<HTMLDivElement>(null)
+  const foilRef = useRef<HTMLDivElement>(null)
+  const [isSharing, setIsSharing] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+  const { handlePointerMove, handlePointerLeave } = useTilt(foilRef)
+
+  useEffect(() => {
+    setIsTouchDevice(window.matchMedia("(hover: none)").matches)
+  }, [])
+
   const obtainedDate = new Date(card.obtained_at).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   })
 
+  async function handleShare() {
+    if (!shareRef.current) return
+    setIsSharing(true)
+    try {
+      await downloadShareImage(shareRef.current, card.name)
+    } catch (err) {
+      console.error("Share image generation failed:", err)
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
+  const tiltEnabled = !isTouchDevice && !prefersReducedMotion
+
+  // CollectionCard has all fields needed by CardShareImage -- cast to satisfy type
+  const shareCard = card as Parameters<typeof CardShareImage>[0]["card"]
+
   return (
     <>
-      {/* Large card image */}
-      <div className="relative aspect-[5/7] w-full overflow-hidden rounded-t-xl">
+      {/* Large card image with tilt and foil */}
+      <Tilt
+        tiltMaxAngleX={12}
+        tiltMaxAngleY={12}
+        perspective={600}
+        scale={1.02}
+        transitionSpeed={300}
+        gyroscope={false}
+        tiltEnable={tiltEnabled}
+        className="relative aspect-[5/7] w-full overflow-hidden rounded-t-xl"
+      >
+        {/* Foil tracking layer -- receives pointer events for CSS var tracking */}
+        <div
+          ref={foilRef}
+          className="absolute inset-0"
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
+        />
+
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -126,7 +176,10 @@ function ModalContent({
             </span>
           </div>
         )}
-      </div>
+
+        {/* Foil overlay -- C/UC return null internally */}
+        <RarityFoilOverlay rarity={card.rarity} context="modal" />
+      </Tilt>
 
       {/* Card info */}
       <div className="flex flex-col gap-4 p-5">
@@ -209,6 +262,28 @@ function ModalContent({
             </div>
           </div>
         )} */}
+
+        {/* Share button */}
+        <button
+          type="button"
+          onClick={handleShare}
+          disabled={isSharing}
+          className="mt-1 w-full cursor-pointer rounded-lg border border-border bg-surface-elevated px-4 py-2 font-display text-sm tracking-wider text-text-secondary transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isSharing ? "Generating..." : "Share Card"}
+        </button>
+      </div>
+
+      {/* Off-screen share card -- must NOT be display:none for html-to-image */}
+      <div
+        style={{
+          position: "fixed",
+          top: "-9999px",
+          left: "-9999px",
+          pointerEvents: "none",
+        }}
+      >
+        <CardShareImage card={shareCard} containerRef={shareRef} />
       </div>
     </>
   )
