@@ -30,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${dmSerif.variable}`}>
       <head>
+        <meta name="google-adsense-account" content="ca-pub-9726973184786812" />
         <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9726973184786812"
           crossOrigin="anonymous"
