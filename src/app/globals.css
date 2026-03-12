@@ -1,37 +1,147 @@
 @import "tailwindcss";
 
 @theme {
-  /* Background */
-  --color-background: #0a0a0a;
-  --color-surface: #141414;
-  --color-surface-elevated: #1e1e1e;
+  /* Background -- warm undertones, not pure black/gray */
+  --color-background: #0a0908;
+  --color-surface: #151311;
+  --color-surface-elevated: #1f1c18;
 
-  /* Borders */
-  --color-border: #2a2a2a;
-  --color-border-subtle: #1f1f1f;
+  /* Borders -- warmer */
+  --color-border: #2e2a24;
+  --color-border-subtle: #221f1a;
 
-  /* Text */
-  --color-text-primary: #f0f0f0;
-  --color-text-secondary: #a0a0a0;
-  --color-text-muted: #666666;
+  /* Text -- off-white, not pure white */
+  --color-text-primary: #e8dcc8;
+  --color-text-secondary: #a89e8e;
+  --color-text-muted: #6b6358;
 
-  /* Accent */
-  --color-accent: #dc2626;
-  --color-accent-hover: #ef4444;
-  --color-accent-muted: #991b1b;
+  /* Accent -- warm gold, replacing red */
+  --color-accent: #c9a84c;
+  --color-accent-hover: #dabb65;
+  --color-accent-muted: #8a7434;
 
-  /* Rarity colors */
+  /* Rarity colors -- desaturated ~20% for premium feel */
   --color-rarity-c: #9ca3af;
-  --color-rarity-uc: #4ade80;
-  --color-rarity-r: #3b82f6;
-  --color-rarity-sr: #a855f7;
-  --color-rarity-ssr: #f59e0b;
-  --color-rarity-ur: #ef4444;
-  --color-rarity-lr: #ec4899;
+  --color-rarity-uc: #6bcb8a;
+  --color-rarity-r: #6a9fd4;
+  --color-rarity-sr: #b87fd4;
+  --color-rarity-ssr: #d4a83a;
+  --color-rarity-ur: #d45454;
+  --color-rarity-lr: #d46ea0;
 
   /* Fonts */
   --font-display: var(--font-bebas-neue), sans-serif;
   --font-body: var(--font-inter), system-ui, sans-serif;
+
+  /* Foil animations */
+  --animate-silver-sweep: silver-sweep 3s ease-in-out infinite;
+  @keyframes silver-sweep {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  --animate-gold-sweep: gold-sweep 3.5s ease-in-out infinite;
+  @keyframes gold-sweep {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  --animate-foil-shimmer: foil-shimmer 4s linear infinite;
+  @keyframes foil-shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  /* Particle animations */
+  --animate-sparkle-float: sparkle-float 2.5s ease-in-out infinite;
+  @keyframes sparkle-float {
+    0% {
+      transform: translateY(0) scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translateY(-6px) scale(1.15);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(0) scale(1);
+      opacity: 0.7;
+    }
+  }
+
+  --animate-sparkle-fade: sparkle-fade 2s ease-in-out infinite;
+  @keyframes sparkle-fade {
+    0% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+  }
+
+  --animate-sparkle-drift: sparkle-drift 3.5s ease-in-out infinite;
+  @keyframes sparkle-drift {
+    0% {
+      transform: translateX(0) translateY(0) rotate(0deg);
+    }
+    33% {
+      transform: translateX(4px) translateY(-5px) rotate(6deg);
+    }
+    66% {
+      transform: translateX(-3px) translateY(-8px) rotate(-4deg);
+    }
+    100% {
+      transform: translateX(0) translateY(0) rotate(0deg);
+    }
+  }
+
+  /* Screen pulse -- LR reveal */
+  --animate-screen-pulse: screen-pulse 0.4s ease-out forwards;
+  @keyframes screen-pulse {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.15;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+/* Foil base -- tilt container for modal/reveal contexts */
+.foil-card {
+  transform-style: preserve-3d;
+  transform: perspective(600px)
+    rotateX(calc(var(--tilt-x, 0) * 1deg))
+    rotateY(calc(var(--tilt-y, 0) * 1deg));
+  transition: transform 0.1s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foil-card {
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 @layer base {
