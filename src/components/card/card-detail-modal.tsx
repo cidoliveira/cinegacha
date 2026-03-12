@@ -18,7 +18,6 @@ import { CardTypeBadge } from "@/components/card/card-type-badge"
 import { getCardDetail } from "@/app/actions/cards"
 import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
 import { CardShareImage, downloadShareImage } from "@/components/card/card-share-image"
-import { useTilt } from "@/hooks/use-tilt"
 
 interface CardDetailModalProps {
   card: PulledCard | null
@@ -81,7 +80,7 @@ export function CardDetailModal({ card, onClose }: CardDetailModalProps) {
       onClick={handleBackdropClick}
       className="m-auto max-w-md rounded-xl border border-border bg-surface p-0 backdrop:bg-black/80"
     >
-      <div className="relative max-h-[90vh] overflow-y-auto">
+      <div className="relative max-h-[90vh] overflow-y-auto overflow-x-hidden">
         {/* Close button */}
         <button
           type="button"
@@ -120,11 +119,9 @@ function DetailContent({
   const defBonus = stats.def - baseDef
 
   const shareRef = useRef<HTMLDivElement>(null)
-  const foilRef = useRef<HTMLDivElement>(null)
   const [isSharing, setIsSharing] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
   const prefersReducedMotion = useReducedMotion()
-  const { handlePointerMove, handlePointerLeave } = useTilt(foilRef)
 
   useEffect(() => {
     setIsTouchDevice(window.matchMedia("(hover: none)").matches)
@@ -148,23 +145,15 @@ function DetailContent({
     <>
       {/* Large image with tilt and foil */}
       <Tilt
-        tiltMaxAngleX={12}
-        tiltMaxAngleY={12}
-        perspective={600}
-        scale={1.02}
+        tiltMaxAngleX={10}
+        tiltMaxAngleY={10}
+        perspective={800}
+        scale={1}
         transitionSpeed={300}
         gyroscope={false}
         tiltEnable={tiltEnabled}
         className="relative aspect-[5/7] w-full overflow-hidden rounded-t-xl"
       >
-        {/* Foil tracking layer -- receives pointer events for CSS var tracking */}
-        <div
-          ref={foilRef}
-          className="absolute inset-0"
-          onPointerMove={handlePointerMove}
-          onPointerLeave={handlePointerLeave}
-        />
-
         {imageUrl ? (
           <Image
             src={imageUrl}
