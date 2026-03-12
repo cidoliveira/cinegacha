@@ -46,11 +46,11 @@ export function CollectionGrid({
   if (isLoading && cards.length === 0) {
     return (
       <div className="max-w-7xl mx-auto w-full px-4">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {Array.from({ length: 10 }).map((_, i) => (
             <div
               key={i}
-              className="aspect-[5/7] animate-pulse rounded-lg bg-surface-elevated"
+              className="aspect-[5/7] animate-pulse rounded bg-surface-elevated"
             />
           ))}
         </div>
@@ -62,17 +62,14 @@ export function CollectionGrid({
   if (!isLoading && cards.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
-        <h2 className="font-display text-3xl tracking-wider text-text-primary">
-          No cards yet
-        </h2>
-        <p className="mt-2 font-body text-text-muted">
-          Open some packs to start your collection!
+        <p className="text-sm text-text-muted">
+          No cards yet.
         </p>
         <Link
           href="/gacha"
-          className="mt-6 rounded-lg bg-accent px-6 py-2.5 font-body text-sm font-medium text-background transition-opacity hover:opacity-90"
+          className="mt-3 border-b border-accent pb-0.5 text-sm text-accent transition-colors hover:text-accent-hover"
         >
-          Open Packs
+          Open packs &rarr;
         </Link>
       </div>
     )
@@ -80,7 +77,7 @@ export function CollectionGrid({
 
   return (
     <div className="max-w-7xl mx-auto w-full px-4">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {cards.map((card) => (
           <GachaCard
             key={card.card_id}

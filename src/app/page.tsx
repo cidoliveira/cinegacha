@@ -2,19 +2,21 @@ import Link from "next/link"
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
-      <h1 className="font-display text-6xl tracking-wider text-accent sm:text-7xl lg:text-8xl">
+    <div className="mx-auto flex flex-1 flex-col justify-center px-6 sm:max-w-xl sm:px-0">
+      <h1 className="font-display text-4xl text-text-primary sm:text-5xl">
         CineGacha
       </h1>
-      <p className="mt-4 text-lg text-text-secondary">
-        Open packs. Collect cinema.
+      <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+        Collect cards from the history of cinema.
+        <br />
+        Open packs, discover rarities, build your collection.
       </p>
 
       <Link
         href="/gacha"
-        className="mt-12 font-display rounded-lg bg-accent px-10 py-4 text-2xl tracking-wider text-text-primary transition-colors hover:bg-accent-hover"
+        className="mt-6 inline-flex w-fit items-center gap-2 border-b border-accent pb-0.5 text-sm text-accent transition-colors hover:text-accent-hover"
       >
-        Open Packs
+        Open packs &rarr;
       </Link>
     </div>
   )

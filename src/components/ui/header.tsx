@@ -26,7 +26,7 @@ export function Header() {
   return (
     <header className="border-b border-border px-4 py-3">
       <nav className="mx-auto flex max-w-7xl items-center justify-between">
-        <Link href="/" className="font-display text-2xl uppercase tracking-wider text-accent">
+        <Link href="/" className="font-display text-xl text-text-primary">
           CineGacha
         </Link>
         <div className="flex items-center gap-6">

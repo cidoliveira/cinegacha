@@ -114,10 +114,7 @@ export function PackOpener() {
   if (isLoading) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
-        <h1 className="font-display text-4xl tracking-wider text-accent sm:text-5xl">
-          CineGacha
-        </h1>
-        <div className="mt-6 h-0.5 w-16 animate-pulse rounded bg-accent-muted" />
+        <div className="h-0.5 w-16 animate-pulse rounded bg-text-muted/30" />
       </div>
     )
   }
@@ -148,13 +145,13 @@ export function PackOpener() {
             <button
               onClick={handleOpenPack}
               disabled={packsAvailable <= 0}
-              className={`font-display rounded-lg px-12 py-4 text-2xl tracking-wider transition-colors sm:text-3xl ${
+              className={`rounded border px-8 py-3 text-sm font-medium transition-colors ${
                 packsAvailable > 0
-                  ? "bg-accent text-text-primary hover:bg-accent-hover cursor-pointer"
-                  : "bg-surface-elevated text-text-muted cursor-not-allowed"
+                  ? "border-accent text-accent hover:bg-accent hover:text-text-primary cursor-pointer"
+                  : "border-border text-text-muted cursor-not-allowed"
               }`}
             >
-              Open Pack
+              Open pack
             </button>
 
             {packsAvailable <= 0 && (
@@ -177,7 +174,7 @@ export function PackOpener() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="flex flex-1 flex-col items-center justify-center py-12"
+            className="flex flex-1 flex-col items-center justify-center overflow-hidden py-4"
           >
             <PackVisual onTearComplete={handleTearComplete} />
           </motion.div>
@@ -206,7 +203,7 @@ export function PackOpener() {
               >
                 <button
                   onClick={handleDismiss}
-                  className="font-display cursor-pointer rounded-lg border border-border bg-surface px-8 py-3 text-lg tracking-wider text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary"
+                  className="cursor-pointer border-b border-text-muted pb-0.5 text-sm text-text-secondary transition-colors hover:border-text-primary hover:text-text-primary"
                 >
                   Continue
                 </button>

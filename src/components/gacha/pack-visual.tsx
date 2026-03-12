@@ -9,26 +9,20 @@ interface PackVisualProps {
 /**
  * TCG booster pack visual with tear animation.
  *
- * Renders a foil-wrapped booster pack using CSS gradients.
- * On click/tap, the pack scales up slightly for anticipation,
- * then splits into top and bottom halves that slide apart and fade.
- * Calls onTearComplete when the tear sequence finishes.
- *
- * Uses useAnimate from Motion for imperative sequential animation.
- * Only animates transform and opacity -- no layout-triggering properties.
+ * Renders a foil-wrapped booster pack inspired by Wikigacha's physical bag look.
+ * Silver/metallic pouch shape with zigzag crimped seals, prominent against dark bg.
+ * On click/tap, scales up then splits into top/bottom halves that slide apart.
  */
 export function PackVisual({ onTearComplete }: PackVisualProps) {
   const [scope, animate] = useAnimate()
 
   async function handleTear() {
-    // Anticipation: pack scales up slightly
     await animate(
       scope.current,
       { scale: 1.03 },
       { duration: 0.15, ease: "easeOut" },
     )
 
-    // Split: top slides up + fades, bottom slides down + fades
     await Promise.all([
       animate(
         ".pack-top",
@@ -80,89 +74,176 @@ export function PackVisual({ onTearComplete }: PackVisualProps) {
   )
 }
 
+/** Zigzag SVG clip-path for crimped seal edges */
+const CRIMP_TOP = `polygon(${Array.from({ length: 26 }, (_, i) => {
+  const x = (i / 25) * 100
+  const y = i % 2 === 0 ? 0 : 3.5
+  return `${x}% ${y}%`
+}).join(", ")}, 100% 100%, 0% 100%)`
+
+const CRIMP_BOTTOM = `polygon(0% 0%, 100% 0%, ${Array.from({ length: 26 }, (_, i) => {
+  const x = 100 - (i / 25) * 100
+  const y = i % 2 === 0 ? 100 : 96.5
+  return `${x}% ${y}%`
+}).join(", ")})`
+
 /**
  * The visual face of the booster pack.
  *
- * CSS-only foil wrapper with metallic gradient, tear line hint,
- * film-strip decorative borders, and CineGacha branding.
+ * Silver metallic pouch with:
+ * - Zigzag crimped seals (top/bottom) via clip-path
+ * - Layered metallic gradients for foil look
+ * - Animated diagonal sheen sweep
+ * - CineGacha branding with emboss effect
+ * - High contrast against dark background
  */
 function PackFace() {
   return (
     <div
-      className="relative flex h-[280px] w-[200px] flex-col items-center justify-center overflow-hidden rounded-xl border border-border-subtle"
+      className="relative flex h-[380px] w-[220px] flex-col items-center justify-center overflow-hidden"
       style={{
+        clipPath: `polygon(${Array.from({ length: 26 }, (_, i) => {
+          const x = (i / 25) * 100
+          const y = i % 2 === 0 ? 0 : 3
+          return `${x}% ${y}%`
+        }).join(", ")}, ${Array.from({ length: 26 }, (_, i) => {
+          const x = 100 - (i / 25) * 100
+          const y = i % 2 === 0 ? 100 : 97
+          return `${x}% ${y}%`
+        }).join(", ")})`,
         background: `
           linear-gradient(
-            135deg,
-            #1a1a1a 0%,
-            #2a2a2a 20%,
-            #1f1f1f 40%,
-            #333333 50%,
-            #1a1a1a 60%,
-            #2a2a2a 80%,
-            #1f1f1f 100%
+            175deg,
+            #c8c0b8 0%,
+            #a8a098 8%,
+            #d8d0c8 18%,
+            #b0a89e 30%,
+            #c0b8b0 42%,
+            #a09890 52%,
+            #c8c0b8 62%,
+            #b8b0a6 74%,
+            #d0c8c0 86%,
+            #a8a098 100%
           )
         `,
       }}
     >
-      {/* Foil sheen overlay */}
+      {/* Secondary metallic gradient layer -- adds depth */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 opacity-40"
         style={{
           background: `
             linear-gradient(
-              160deg,
+              90deg,
+              transparent 0%,
+              rgba(255,255,255,0.3) 15%,
               transparent 30%,
-              rgba(220, 38, 38, 0.15) 45%,
-              rgba(220, 38, 38, 0.08) 55%,
-              transparent 70%
+              rgba(255,255,255,0.15) 50%,
+              transparent 65%,
+              rgba(255,255,255,0.25) 85%,
+              transparent 100%
             )
           `,
         }}
       />
 
-      {/* Film-strip decorative edge (left) */}
-      <div className="absolute top-4 bottom-4 left-3 w-3 opacity-20">
-        <div className="flex h-full flex-col justify-between">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-2 w-3 rounded-sm bg-text-muted"
-            />
-          ))}
-        </div>
+      {/* Animated foil sheen -- diagonal light sweep */}
+      <div
+        className="pointer-events-none absolute inset-0 animate-pack-sheen"
+        style={{
+          backgroundImage: `
+            linear-gradient(
+              125deg,
+              transparent 20%,
+              rgba(255, 255, 255, 0.08) 35%,
+              rgba(255, 255, 255, 0.2) 45%,
+              rgba(255, 255, 255, 0.35) 50%,
+              rgba(255, 255, 255, 0.2) 55%,
+              rgba(255, 255, 255, 0.08) 65%,
+              transparent 80%
+            )
+          `,
+          backgroundSize: "200% 200%",
+        }}
+      />
+
+      {/* Subtle crinkle/grain texture */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-multiply"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Fold/crease lines -- simulates foil wrapping */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-[25%] left-[10%] right-[10%] h-px bg-white/[0.08]" />
+        <div className="absolute top-[75%] left-[10%] right-[10%] h-px bg-black/[0.06]" />
+        <div className="absolute top-[12%] bottom-[12%] left-[20%] w-px bg-white/[0.05]" />
+        <div className="absolute top-[12%] bottom-[12%] right-[20%] w-px bg-black/[0.04]" />
       </div>
 
-      {/* Film-strip decorative edge (right) */}
-      <div className="absolute top-4 right-3 bottom-4 w-3 opacity-20">
-        <div className="flex h-full flex-col justify-between">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-2 w-3 rounded-sm bg-text-muted"
-            />
-          ))}
-        </div>
+      {/* Central branding area */}
+      <div className="relative z-10 flex flex-col items-center gap-2">
+        {/* Decorative rule */}
+        <div className="h-px w-12 bg-gradient-to-r from-transparent via-black/20 to-transparent" />
+
+        {/* Logo -- dark embossed on light foil */}
+        <span
+          className="font-display text-[32px] italic leading-none"
+          style={{
+            background: "linear-gradient(180deg, #3a3530 0%, #1a1815 40%, #3a3530 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 1px 0px rgba(255,255,255,0.15))",
+          }}
+        >
+          CineGacha
+        </span>
+
+        {/* Subtitle */}
+        <span
+          className="text-[9px] font-medium tracking-[0.3em] uppercase"
+          style={{ color: "rgba(50, 45, 40, 0.5)" }}
+        >
+          Booster Pack
+        </span>
+
+        {/* Decorative rule */}
+        <div className="h-px w-12 bg-gradient-to-r from-transparent via-black/20 to-transparent" />
       </div>
 
-      {/* Pack branding */}
-      <span className="font-display relative z-10 text-3xl tracking-widest text-accent opacity-80">
-        CineGacha
-      </span>
+      {/* Accent stripe -- subtle red band */}
+      <div
+        className="pointer-events-none absolute left-0 right-0 top-[38%] h-[1px]"
+        style={{
+          background: "linear-gradient(90deg, transparent 15%, rgba(230, 57, 70, 0.25) 50%, transparent 85%)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute left-0 right-0 bottom-[38%] h-[1px]"
+        style={{
+          background: "linear-gradient(90deg, transparent 15%, rgba(230, 57, 70, 0.25) 50%, transparent 85%)",
+        }}
+      />
 
-      {/* Subtitle */}
-      <span className="font-body relative z-10 mt-1 text-[10px] tracking-[0.3em] text-text-muted uppercase">
-        Booster Pack
-      </span>
-
-      {/* Tear line hint */}
-      <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2">
-        <div className="border-t border-dashed border-text-muted/30" />
+      {/* Tear line -- perforated dots across center */}
+      <div className="absolute left-[8%] right-[8%] top-1/2 -translate-y-1/2 flex items-center justify-center gap-[3px]">
+        {Array.from({ length: 28 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[1px] w-[3px] rounded-full"
+            style={{ backgroundColor: "rgba(0,0,0,0.12)" }}
+          />
+        ))}
       </div>
 
       {/* Tap hint */}
-      <span className="absolute bottom-5 text-[10px] text-text-muted opacity-0 transition-opacity group-hover:opacity-60">
-        Tap to open
+      <span
+        className="absolute bottom-[15%] text-[9px] font-medium tracking-[0.15em] uppercase opacity-0 transition-opacity group-hover:opacity-100"
+        style={{ color: "rgba(50, 45, 40, 0.4)" }}
+      >
+        tap to open
       </span>
     </div>
   )

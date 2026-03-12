@@ -5,7 +5,7 @@ export function RootLayoutShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <main className="flex-1">{children}</main>
+      <main className="flex flex-1 flex-col">{children}</main>
       <Footer />
     </>
   )

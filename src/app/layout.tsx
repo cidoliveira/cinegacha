@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Bebas_Neue } from 'next/font/google'
+import { Inter, DM_Serif_Display } from 'next/font/google'
 import { RootLayoutShell } from '@/components/layout/root-layout-shell'
 import './globals.css'
 
@@ -9,10 +9,10 @@ const inter = Inter({
   display: 'swap',
 })
 
-const bebasNeue = Bebas_Neue({
+const dmSerif = DM_Serif_Display({
   weight: '400',
   subsets: ['latin'],
-  variable: '--font-bebas-neue',
+  variable: '--font-dm-serif',
   display: 'swap',
 })
 
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${bebasNeue.variable}`}>
+    <html lang="en" className={`${inter.variable} ${dmSerif.variable}`}>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-text-primary">
         <RootLayoutShell>{children}</RootLayoutShell>
       </body>

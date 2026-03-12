@@ -165,7 +165,7 @@ function DetailContent({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-surface-elevated">
-            <span className="text-center font-display text-2xl tracking-wide text-text-muted">
+            <span className="text-center font-display text-2xl italic text-text-muted">
               {detail.name}
             </span>
           </div>
@@ -178,7 +178,7 @@ function DetailContent({
       {/* Card info */}
       <div className="flex flex-col gap-4 p-5">
         {/* Name */}
-        <h2 className="font-display text-2xl tracking-wide text-text-primary">
+        <h2 className="font-display text-2xl italic text-text-primary">
           {detail.name}
         </h2>
 
@@ -186,12 +186,12 @@ function DetailContent({
         <div className="flex items-center gap-3">
           <CardTypeBadge type={detail.card_type} />
           <span
-            className="font-display text-sm tracking-wider"
+            className="text-xs font-medium tracking-widest"
             style={{
               color: `var(--color-rarity-${detail.rarity.toLowerCase()})`,
             }}
           >
-            {detail.rarity} - {rarityTier.label}
+            {detail.rarity} &middot; {rarityTier.label}
           </span>
         </div>
 
@@ -208,7 +208,7 @@ function DetailContent({
         <div className="flex gap-6">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-text-muted">ATK</span>
-            <span className="font-display text-xl tracking-wider text-text-primary">
+            <span className="text-xl tabular-nums text-text-primary">
               {stats.atk}
               {atkBonus > 0 && (
                 <span className="ml-1 text-sm text-green-400">
@@ -219,7 +219,7 @@ function DetailContent({
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-text-muted">DEF</span>
-            <span className="font-display text-xl tracking-wider text-text-primary">
+            <span className="text-xl tabular-nums text-text-primary">
               {stats.def}
               {defBonus > 0 && (
                 <span className="ml-1 text-sm text-green-400">
@@ -241,9 +241,9 @@ function DetailContent({
           type="button"
           onClick={handleShare}
           disabled={isSharing}
-          className="mt-1 w-full cursor-pointer rounded-lg border border-border bg-surface-elevated px-4 py-2 font-display text-sm tracking-wider text-text-secondary transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-1 cursor-pointer border-b border-text-muted pb-0.5 text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSharing ? "Generating..." : "Share Card"}
+          {isSharing ? "Generating..." : "Share card"}
         </button>
       </div>
 
@@ -274,7 +274,7 @@ function MetadataSection({
 
   return (
     <div className="border-t border-border pt-4">
-      <h3 className="mb-2 text-xs font-semibold tracking-wider text-text-muted uppercase">
+      <h3 className="mb-2 text-[10px] font-medium tracking-widest text-text-muted uppercase">
         Details
       </h3>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -352,7 +352,7 @@ function MetaItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
       <span className="text-xs text-text-muted">{label}</span>
-      <span className="font-display text-sm tracking-wider text-text-secondary">
+      <span className="text-sm text-text-secondary">
         {value}
       </span>
     </div>

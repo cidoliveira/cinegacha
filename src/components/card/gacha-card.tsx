@@ -46,7 +46,7 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
   const isFoilContext = context === "modal" || context === "reveal"
   const Wrapper = onClick ? "button" : "div"
   const interactiveClasses = onClick
-    ? "cursor-pointer transition-transform hover:scale-[1.02]"
+    ? "cursor-pointer transition-opacity hover:opacity-90"
     : ""
 
   return (
@@ -71,7 +71,7 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-surface px-2">
-            <span className="text-center font-display text-lg tracking-wide text-text-muted">
+            <span className="text-center font-display text-lg italic text-text-muted">
               {card.name}
             </span>
           </div>
@@ -89,7 +89,7 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
 
         {/* Rarity label -- top right */}
         <span
-          className="absolute top-2 right-2 rounded-full bg-background/80 px-2 py-0.5 font-display text-xs tracking-wider backdrop-blur-sm"
+          className="absolute top-2 right-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm"
           style={{
             color: `var(--color-rarity-${card.rarity.toLowerCase()})`,
           }}
@@ -110,11 +110,11 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
         className={`flex min-h-0 flex-[2] flex-col justify-between border-t-2 bg-surface-elevated p-2 ${TYPE_TINT[card.card_type]}`}
       >
         <div className="flex flex-col gap-0.5">
-          <h3 className="truncate font-display text-base tracking-wide text-text-primary">
+          <h3 className="truncate font-display text-sm italic text-text-primary">
             {card.name}
           </h3>
           <span
-            className="font-display text-xs tracking-wider"
+            className="text-[10px] font-medium tracking-widest"
             style={{
               color: `var(--color-rarity-${card.rarity.toLowerCase()})`,
             }}

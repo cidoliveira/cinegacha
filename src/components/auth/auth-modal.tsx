@@ -162,8 +162,8 @@ export function AuthModal({
 
         {/* Header */}
         <div className="mb-6 pr-8">
-          <h2 className="font-display text-2xl tracking-wider text-accent">
-            Sign In
+          <h2 className="font-display text-xl text-text-primary">
+            Sign in
           </h2>
           <p className="mt-1 text-sm text-text-secondary">
             Save your collection across devices

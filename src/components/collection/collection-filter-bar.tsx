@@ -48,7 +48,7 @@ export function CollectionFilterBar({
   return (
     <div className="max-w-7xl mx-auto px-4">
       <div className="flex flex-wrap items-center gap-3">
-        {/* Type filter chips */}
+        {/* Type filters -- text links */}
         {TYPE_OPTIONS.map(({ value, label, color }) => {
           const isActive = typeFilters.includes(value)
           return (
@@ -57,15 +57,16 @@ export function CollectionFilterBar({
               type="button"
               onClick={() => onTypeFiltersChange(toggleItem(typeFilters, value))}
               className={[
-                "rounded-lg px-3 py-1.5 font-body text-sm font-medium transition-colors",
+                "text-sm transition-colors cursor-pointer",
                 isActive
                   ? color === "amber"
-                    ? "bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/50"
+                    ? "text-amber-400"
                     : color === "sky"
-                      ? "bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/50"
-                      : "bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/50"
-                  : "bg-surface-elevated text-text-secondary hover:text-text-primary",
+                      ? "text-sky-400"
+                      : "text-violet-400"
+                  : "text-text-muted hover:text-text-secondary",
               ].join(" ")}
+              style={isActive ? { borderBottom: "1px solid currentColor", paddingBottom: "2px" } : { paddingBottom: "3px" }}
             >
               {label}
             </button>
@@ -75,7 +76,7 @@ export function CollectionFilterBar({
         {/* Separator */}
         <div className="h-5 w-px bg-border" />
 
-        {/* Rarity filter chips */}
+        {/* Rarity filters -- text links */}
         {RARITY_OPTIONS.map((rarity) => {
           const isActive = rarityFilters.includes(rarity)
           const rarityKey = rarity.toLowerCase()
@@ -86,19 +87,18 @@ export function CollectionFilterBar({
               onClick={() =>
                 onRarityFiltersChange(toggleItem(rarityFilters, rarity))
               }
-              className={[
-                "rounded-full px-2.5 py-1 font-display text-xs tracking-wider transition-colors",
-                isActive
-                  ? "bg-surface-elevated"
-                  : "bg-surface-elevated text-text-secondary hover:text-text-primary",
-              ].join(" ")}
+              className="text-xs font-medium tracking-wider transition-colors cursor-pointer"
               style={
                 isActive
                   ? {
                       color: `var(--color-rarity-${rarityKey})`,
-                      boxShadow: `0 0 0 1px var(--color-rarity-${rarityKey})`,
+                      borderBottom: "1px solid currentColor",
+                      paddingBottom: "2px",
                     }
-                  : undefined
+                  : {
+                      color: "var(--color-text-muted)",
+                      paddingBottom: "3px",
+                    }
               }
             >
               {RARITY_TIERS[rarity].label === "Common"

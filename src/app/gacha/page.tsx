@@ -17,10 +17,7 @@ export default function GachaPage() {
   if (!isReady) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
-        <h1 className="font-display text-4xl tracking-wider text-accent sm:text-5xl">
-          CineGacha
-        </h1>
-        <div className="mt-6 h-0.5 w-16 animate-pulse rounded bg-accent-muted" />
+        <div className="h-0.5 w-16 animate-pulse rounded bg-text-muted/30" />
       </div>
     )
   }

@@ -32,27 +32,23 @@ export function CollectionHero({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <p className="font-display text-5xl tracking-wider text-text-primary sm:text-6xl">
-        <span className="text-accent">{collected}</span>
-        <span className="mx-2 text-text-muted">/</span>
-        <span>{total}</span>
-        <span className="ml-3 font-display text-2xl tracking-wide text-text-secondary sm:text-3xl">
-          cards
+      <div className="flex items-baseline gap-3">
+        <span className="text-lg tabular-nums text-text-primary">
+          {collected}
+          <span className="text-text-muted"> / {total}</span>
         </span>
-      </p>
+        <span className="text-xs text-text-muted">cards collected</span>
+      </div>
 
-      <div className="mt-4 flex flex-wrap gap-6">
-        <span className="font-body text-sm text-text-secondary">
-          <span className="font-semibold text-amber-500">Movies:</span>{" "}
-          {byType.movie}
+      <div className="mt-2 flex flex-wrap gap-4 text-xs text-text-muted">
+        <span>
+          <span className="text-amber-400">{byType.movie}</span> films
         </span>
-        <span className="font-body text-sm text-text-secondary">
-          <span className="font-semibold text-sky-500">Actors:</span>{" "}
-          {byType.actor}
+        <span>
+          <span className="text-sky-400">{byType.actor}</span> actors
         </span>
-        <span className="font-body text-sm text-text-secondary">
-          <span className="font-semibold text-violet-500">Directors:</span>{" "}
-          {byType.director}
+        <span>
+          <span className="text-violet-400">{byType.director}</span> directors
         </span>
       </div>
     </div>

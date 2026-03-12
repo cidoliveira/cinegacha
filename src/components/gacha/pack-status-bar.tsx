@@ -35,39 +35,37 @@ export function PackStatusBar({
   const packsUntilPity = PITY_THRESHOLD - pityCounter
 
   return (
-    <div className="flex flex-col items-center gap-3 border-b border-border pb-6 sm:flex-row sm:justify-between sm:gap-6">
-      {/* Pack count -- hero element */}
-      <div className="text-center sm:text-left">
-        <p
-          className={`font-display text-5xl tracking-wider sm:text-6xl ${
-            packsAvailable > 0 ? "text-accent" : "text-text-muted"
+    <div className="flex items-baseline justify-between border-b border-border pb-4">
+      {/* Pack count -- understated */}
+      <div className="flex items-baseline gap-2">
+        <span
+          className={`text-lg tabular-nums ${
+            packsAvailable > 0 ? "text-text-primary" : "text-text-muted"
           }`}
         >
           {packsAvailable}/{MAX_PACKS}
-        </p>
-        <p className="font-display text-sm tracking-wider text-text-secondary uppercase">
-          Packs
-        </p>
+        </span>
+        <span className="text-xs text-text-muted">packs</span>
       </div>
 
       {/* Pity + timer info */}
-      <div className="flex flex-col items-center gap-1 sm:items-end">
-        <p className="text-sm text-text-secondary">
-          Guaranteed SR+ in{" "}
-          <span className="text-text-primary">
-            {packsUntilPity} {packsUntilPity === 1 ? "pack" : "packs"}
+      <div className="flex items-baseline gap-4 text-xs text-text-muted">
+        <span>
+          SR+ in{" "}
+          <span className="text-text-secondary">
+            {packsUntilPity}
           </span>
-        </p>
+        </span>
 
         {timer.display !== null ? (
-          <p className="text-sm text-text-muted">
-            Next pack in{" "}
-            <span className="font-display tracking-wider text-text-secondary">
+          <span>
+            Next{" "}
+            <span className="tabular-nums text-text-secondary">
               {timer.display}
             </span>
-          </p>
+          </span>
         ) : packsAvailable >= MAX_PACKS ? (
-          <p className="text-sm text-text-muted">Packs full</p>
+          <span>Full</span>
         ) : null}
       </div>
     </div>

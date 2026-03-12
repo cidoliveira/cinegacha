@@ -2,15 +2,11 @@ type CardType = "movie" | "actor" | "director"
 
 const TYPE_CONFIG: Record<
   CardType,
-  { label: string; prefix: string; textColor: string }
+  { label: string; textColor: string }
 > = {
-  movie: { label: "MOVIE", prefix: "\u{1F3AC}", textColor: "text-amber-400" },
-  actor: { label: "ACTOR", prefix: "\u2605", textColor: "text-sky-400" },
-  director: {
-    label: "DIRECTOR",
-    prefix: "\u{1F3A5}",
-    textColor: "text-violet-400",
-  },
+  movie: { label: "FILM", textColor: "text-amber-400" },
+  actor: { label: "ACTOR", textColor: "text-sky-400" },
+  director: { label: "DIRECTOR", textColor: "text-violet-400" },
 }
 
 /**
@@ -24,9 +20,8 @@ export function CardTypeBadge({ type }: { type: CardType }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 font-display text-xs tracking-wider backdrop-blur-sm ${config.textColor}`}
+      className={`inline-flex items-center rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm ${config.textColor}`}
     >
-      <span className="text-[10px]">{config.prefix}</span>
       {config.label}
     </span>
   )
