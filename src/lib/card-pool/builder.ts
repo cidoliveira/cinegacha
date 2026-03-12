@@ -26,9 +26,7 @@ import {
 } from "@/lib/rarity/calculator"
 import type { RarityTier } from "@/lib/rarity/tiers"
 import {
-  computeMovieStats,
-  computeActorStats,
-  computeDirectorStats,
+  computePoolStats,
   applyRarityMultiplier,
 } from "@/lib/card-pool/stats"
 import { validateImageUrl } from "@/lib/card-pool/validator"
@@ -467,7 +465,7 @@ async function validateImages<T>(
 function buildMovieCards(
   movies: TmdbMovie[],
   tieredMovies: (RarityEntity & { rarity: RarityTier })[],
-  moviePopRange: { min: number; max: number },
+  statsMap: Map<string, { baseAtk: number; baseDef: number }>,
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredMovies.map((t) => [t.id, t.rarity]))
   const movieMap = new Map(movies.map((m) => [makeCardId("movie", m.id), m]))
@@ -475,12 +473,7 @@ function buildMovieCards(
   return tieredMovies.map((t) => {
     const movie = movieMap.get(t.id)!
     const rarity = tierMap.get(t.id)!
-    const { baseAtk, baseDef } = computeMovieStats(
-      movie.popularity,
-      movie.vote_average,
-      moviePopRange.min,
-      moviePopRange.max,
-    )
+    const { baseAtk, baseDef } = statsMap.get(t.id)!
     const { atk, def } = applyRarityMultiplier(baseAtk, baseDef, rarity)
 
     return {
@@ -509,7 +502,7 @@ function buildMovieCards(
 function buildActorCards(
   processedActors: ProcessedPerson[],
   tieredActors: (RarityEntity & { rarity: RarityTier })[],
-  peoplePopRange: { min: number; max: number },
+  statsMap: Map<string, { baseAtk: number; baseDef: number }>,
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredActors.map((t) => [t.id, t.rarity]))
   const actorMap = new Map(
@@ -519,12 +512,7 @@ function buildActorCards(
   return tieredActors.map((t) => {
     const actor = actorMap.get(t.id)!
     const rarity = tierMap.get(t.id)!
-    const { baseAtk, baseDef } = computeActorStats(
-      actor.person.popularity,
-      actor.avgMovieVote,
-      peoplePopRange.min,
-      peoplePopRange.max,
-    )
+    const { baseAtk, baseDef } = statsMap.get(t.id)!
     const { atk, def } = applyRarityMultiplier(baseAtk, baseDef, rarity)
 
     return {
@@ -550,7 +538,7 @@ function buildActorCards(
 function buildDirectorCards(
   processedDirectors: ProcessedPerson[],
   tieredDirectors: (RarityEntity & { rarity: RarityTier })[],
-  _peoplePopRange: { min: number; max: number },
+  statsMap: Map<string, { baseAtk: number; baseDef: number }>,
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredDirectors.map((t) => [t.id, t.rarity]))
   const directorMap = new Map(
@@ -560,10 +548,7 @@ function buildDirectorCards(
   return tieredDirectors.map((t) => {
     const director = directorMap.get(t.id)!
     const rarity = tierMap.get(t.id)!
-    const { baseAtk, baseDef } = computeDirectorStats(
-      director.avgMovieVote,
-      director.careerConsistency,
-    )
+    const { baseAtk, baseDef } = statsMap.get(t.id)!
     const { atk, def } = applyRarityMultiplier(baseAtk, baseDef, rarity)
 
     return {
@@ -749,27 +734,37 @@ export async function seedCardPool(): Promise<SeedResult> {
   const tieredActors = assignRarityTiers(actorEntities)
   const tieredDirectors = assignRarityTiers(directorEntities)
 
-  // 8. Compute stats
-  const moviePopRange = minMax(validMovies.map((m) => m.popularity))
-  const allPeoplePopularity = [
-    ...processedActors.map((a) => a.person.popularity),
-    ...processedDirectors.map((d) => d.person.popularity),
-  ]
-  const peoplePopRange = minMax(allPeoplePopularity)
+  // 8. Compute pool-wide stats (percentile-ranked reach × quality blend)
+  console.log("[seed] Computing pool-wide stats...")
+  const moviePoolStats = computePoolStats(
+    validMovies.map((m) => m.popularity),
+    validMovies.map((m) => m.vote_average),
+  )
+  const movieStatsMap = new Map(
+    validMovies.map((m, i) => [makeCardId("movie", m.id), moviePoolStats[i]]),
+  )
+
+  const actorPoolStats = computePoolStats(
+    processedActors.map((a) => a.person.popularity),
+    processedActors.map((a) => a.avgMovieVote),
+  )
+  const actorStatsMap = new Map(
+    processedActors.map((a, i) => [makeCardId("actor", a.person.id), actorPoolStats[i]]),
+  )
+
+  const directorPoolStats = computePoolStats(
+    processedDirectors.map((d) => d.person.popularity),
+    processedDirectors.map((d) => 0.7 * (d.avgMovieVote / 10) + 0.3 * d.careerConsistency),
+  )
+  const directorStatsMap = new Map(
+    processedDirectors.map((d, i) => [makeCardId("director", d.person.id), directorPoolStats[i]]),
+  )
 
   // 9. Build card records
   console.log("[seed] Building card records...")
-  const movieCards = buildMovieCards(validMovies, tieredMovies, moviePopRange)
-  const actorCards = buildActorCards(
-    processedActors,
-    tieredActors,
-    peoplePopRange,
-  )
-  const directorCards = buildDirectorCards(
-    processedDirectors,
-    tieredDirectors,
-    peoplePopRange,
-  )
+  const movieCards = buildMovieCards(validMovies, tieredMovies, movieStatsMap)
+  const actorCards = buildActorCards(processedActors, tieredActors, actorStatsMap)
+  const directorCards = buildDirectorCards(processedDirectors, tieredDirectors, directorStatsMap)
 
   const allCards = [...movieCards, ...actorCards, ...directorCards]
 
@@ -896,26 +891,34 @@ export async function refreshCardPool(): Promise<RefreshResult> {
       ? assignRarityTiers(newDirectorEntities)
       : []
 
-  // Pool-wide pop ranges include both new and existing for stat normalization
-  const allMoviePopularity = movies.map((m) => m.popularity)
-  const moviePopRange = minMax(allMoviePopularity)
-  const allPeoplePopularity = [
-    ...processedActors.map((a) => a.person.popularity),
-    ...processedDirectors.map((d) => d.person.popularity),
-  ]
-  const peoplePopRange = minMax(allPeoplePopularity)
+  // Pool-wide stats (percentile-ranked across all cards in refresh batch)
+  const moviePoolStats = computePoolStats(
+    movies.map((m) => m.popularity),
+    movies.map((m) => m.vote_average),
+  )
+  const movieStatsMap = new Map(
+    movies.map((m, i) => [makeCardId("movie", m.id), moviePoolStats[i]]),
+  )
 
-  const newMovieCards = buildMovieCards(newMovies, tieredNewMovies, moviePopRange)
-  const newActorCards = buildActorCards(
-    newActors,
-    tieredNewActors,
-    peoplePopRange,
+  const actorPoolStats = computePoolStats(
+    processedActors.map((a) => a.person.popularity),
+    processedActors.map((a) => a.avgMovieVote),
   )
-  const newDirectorCards = buildDirectorCards(
-    newDirectors,
-    tieredNewDirectors,
-    peoplePopRange,
+  const actorStatsMap = new Map(
+    processedActors.map((a, i) => [makeCardId("actor", a.person.id), actorPoolStats[i]]),
   )
+
+  const directorPoolStats = computePoolStats(
+    processedDirectors.map((d) => d.person.popularity),
+    processedDirectors.map((d) => 0.7 * (d.avgMovieVote / 10) + 0.3 * d.careerConsistency),
+  )
+  const directorStatsMap = new Map(
+    processedDirectors.map((d, i) => [makeCardId("director", d.person.id), directorPoolStats[i]]),
+  )
+
+  const newMovieCards = buildMovieCards(newMovies, tieredNewMovies, movieStatsMap)
+  const newActorCards = buildActorCards(newActors, tieredNewActors, actorStatsMap)
+  const newDirectorCards = buildDirectorCards(newDirectors, tieredNewDirectors, directorStatsMap)
 
   const allNewCards = [...newMovieCards, ...newActorCards, ...newDirectorCards]
 
@@ -937,14 +940,10 @@ export async function refreshCardPool(): Promise<RefreshResult> {
 
   // Update existing movies
   for (const movie of existingMovies) {
-    const { baseAtk, baseDef } = computeMovieStats(
-      movie.popularity,
-      movie.vote_average,
-      moviePopRange.min,
-      moviePopRange.max,
-    )
-    // We need the existing card's rarity to apply multiplier
     const cardId = makeCardId("movie", movie.id)
+    const stats = movieStatsMap.get(cardId)
+    if (!stats) continue
+
     const { data: existing } = await supabase
       .from("card_pool")
       .select("rarity")
@@ -954,8 +953,8 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     if (!existing) continue
 
     const { atk, def } = applyRarityMultiplier(
-      baseAtk,
-      baseDef,
+      stats.baseAtk,
+      stats.baseDef,
       existing.rarity as RarityTier,
     )
 
@@ -989,13 +988,10 @@ export async function refreshCardPool(): Promise<RefreshResult> {
 
   // Update existing actors
   for (const actor of existingActors) {
-    const { baseAtk, baseDef } = computeActorStats(
-      actor.person.popularity,
-      actor.avgMovieVote,
-      peoplePopRange.min,
-      peoplePopRange.max,
-    )
     const cardId = makeCardId("actor", actor.person.id)
+    const stats = actorStatsMap.get(cardId)
+    if (!stats) continue
+
     const { data: existing } = await supabase
       .from("card_pool")
       .select("rarity")
@@ -1005,8 +1001,8 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     if (!existing) continue
 
     const { atk, def } = applyRarityMultiplier(
-      baseAtk,
-      baseDef,
+      stats.baseAtk,
+      stats.baseDef,
       existing.rarity as RarityTier,
     )
 
@@ -1038,11 +1034,10 @@ export async function refreshCardPool(): Promise<RefreshResult> {
 
   // Update existing directors
   for (const director of existingDirectors) {
-    const { baseAtk, baseDef } = computeDirectorStats(
-      director.avgMovieVote,
-      director.careerConsistency,
-    )
     const cardId = makeCardId("director", director.person.id)
+    const stats = directorStatsMap.get(cardId)
+    if (!stats) continue
+
     const { data: existing } = await supabase
       .from("card_pool")
       .select("rarity")
@@ -1052,8 +1047,8 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     if (!existing) continue
 
     const { atk, def } = applyRarityMultiplier(
-      baseAtk,
-      baseDef,
+      stats.baseAtk,
+      stats.baseDef,
       existing.rarity as RarityTier,
     )
 

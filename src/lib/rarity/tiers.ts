@@ -6,12 +6,12 @@
  */
 export const RARITY_TIERS = {
   C: { label: "Common", targetPct: 0.25, multiplier: 1.0 },
-  UC: { label: "Uncommon", targetPct: 0.25, multiplier: 1.15 },
-  R: { label: "Rare", targetPct: 0.22, multiplier: 1.35 },
-  SR: { label: "Super Rare", targetPct: 0.15, multiplier: 1.6 },
-  SSR: { label: "Super Super Rare", targetPct: 0.08, multiplier: 2.0 },
-  UR: { label: "Ultra Rare", targetPct: 0.035, multiplier: 2.5 },
-  LR: { label: "Legendary Rare", targetPct: 0.015, multiplier: 3.2 },
+  UC: { label: "Uncommon", targetPct: 0.25, multiplier: 1.08 },
+  R: { label: "Rare", targetPct: 0.22, multiplier: 1.18 },
+  SR: { label: "Super Rare", targetPct: 0.15, multiplier: 1.3 },
+  SSR: { label: "Super Super Rare", targetPct: 0.08, multiplier: 1.45 },
+  UR: { label: "Ultra Rare", targetPct: 0.035, multiplier: 1.65 },
+  LR: { label: "Legendary Rare", targetPct: 0.015, multiplier: 1.9 },
 } as const
 
 export type RarityTier = keyof typeof RARITY_TIERS

@@ -1,24 +1,59 @@
 /**
  * ATK/DEF stat computation for gacha cards.
  *
- * Stats are derived from real TMDB data, normalized to a 1-999 scale,
- * then amplified by a rarity multiplier. Each card type (movie, actor,
- * director) uses different TMDB fields to compute its base stats.
+ * Both stats blend two signals — reach (popularity/cultural impact) and
+ * quality (critical acclaim). Signals are converted to percentile ranks
+ * within each card-type pool so both distributions are uniform, ensuring
+ * cards can naturally be "attackers" or "defenders" depending on their
+ * relative strengths.
+ *
+ * ATK = 0.6 × reach_percentile + 0.4 × quality_percentile
+ * DEF = 0.4 × reach_percentile + 0.6 × quality_percentile
  */
 import { RARITY_TIERS, type RarityTier } from "../rarity/tiers"
 
 // ---------------------------------------------------------------------------
-// Normalization utilities
+// Constants
+// ---------------------------------------------------------------------------
+
+const ATK_REACH_WEIGHT = 0.6
+const ATK_QUALITY_WEIGHT = 0.4
+const DEF_REACH_WEIGHT = 0.4
+const DEF_QUALITY_WEIGHT = 0.6
+
+// ---------------------------------------------------------------------------
+// Percentile ranking
 // ---------------------------------------------------------------------------
 
 /**
- * Normalizes a value into the 0-1 range given known min/max bounds.
- * Returns 0.5 if min === max (avoids division by zero).
+ * Converts raw values to percentile ranks (0-1, uniformly distributed).
+ * Ties receive the average rank. Handles pools of size 0 and 1.
  */
-export function normalize(value: number, min: number, max: number): number {
-  if (max === min) return 0.5
-  return Math.max(0, Math.min(1, (value - min) / (max - min)))
+export function toPercentileRanks(values: number[]): number[] {
+  const n = values.length
+  if (n === 0) return []
+  if (n === 1) return [0.5]
+
+  const indexed = values.map((v, i) => ({ v, i }))
+  indexed.sort((a, b) => a.v - b.v)
+
+  const ranks = new Array<number>(n)
+  let i = 0
+  while (i < n) {
+    let j = i
+    while (j < n && indexed[j].v === indexed[i].v) j++
+    const avgRank = (i + j - 1) / 2
+    for (let k = i; k < j; k++) {
+      ranks[indexed[k].i] = avgRank / (n - 1)
+    }
+    i = j
+  }
+  return ranks
 }
+
+// ---------------------------------------------------------------------------
+// Stat computation
+// ---------------------------------------------------------------------------
 
 /**
  * Maps a normalized 0-1 value to the 1-999 stat range.
@@ -27,63 +62,33 @@ export function toStatRange(normalizedValue: number): number {
   return Math.max(1, Math.min(999, Math.round(normalizedValue * 998 + 1)))
 }
 
-// ---------------------------------------------------------------------------
-// Card type stat functions
-// ---------------------------------------------------------------------------
-
 /**
- * Movie stats:
- * - ATK derived from popularity (normalized across the pool)
- * - DEF derived from vote average (0-10 scale)
+ * Blends percentile-ranked reach and quality into base ATK/DEF.
  */
-export function computeMovieStats(
-  popularity: number,
-  voteAverage: number,
-  poolMinPopularity: number,
-  poolMaxPopularity: number
+export function blendToStats(
+  reachPct: number,
+  qualityPct: number,
 ): { baseAtk: number; baseDef: number } {
-  const baseAtk = toStatRange(
-    normalize(popularity, poolMinPopularity, poolMaxPopularity)
-  )
-  const baseDef = toStatRange(normalize(voteAverage, 0, 10))
-  return { baseAtk, baseDef }
+  const atkNorm = ATK_REACH_WEIGHT * reachPct + ATK_QUALITY_WEIGHT * qualityPct
+  const defNorm = DEF_REACH_WEIGHT * reachPct + DEF_QUALITY_WEIGHT * qualityPct
+  return {
+    baseAtk: toStatRange(atkNorm),
+    baseDef: toStatRange(defNorm),
+  }
 }
 
 /**
- * Actor stats:
- * - ATK derived from popularity (normalized across the pool)
- * - DEF derived from average movie vote average (0-10 scale)
+ * Computes ATK/DEF for an entire pool of cards at once.
+ * Takes parallel arrays of raw reach and quality values,
+ * converts to percentile ranks, then blends into stats.
  */
-export function computeActorStats(
-  popularity: number,
-  avgMovieVoteAverage: number,
-  poolMinPopularity: number,
-  poolMaxPopularity: number
-): { baseAtk: number; baseDef: number } {
-  const baseAtk = toStatRange(
-    normalize(popularity, poolMinPopularity, poolMaxPopularity)
-  )
-  const baseDef = toStatRange(normalize(avgMovieVoteAverage, 0, 10))
-  return { baseAtk, baseDef }
-}
-
-/**
- * Director stats:
- * - ATK derived from average directed movie vote average (0-10 scale)
- * - DEF derived from career consistency (ratio of movies with vote_avg > 6.0)
- *
- * careerConsistency is pre-computed as:
- *   (movies with vote_avg > 6.0) / total_directed_movies
- */
-export function computeDirectorStats(
-  avgDirectedMovieVoteAverage: number,
-  careerConsistency: number
-): { baseAtk: number; baseDef: number } {
-  const baseAtk = toStatRange(
-    normalize(avgDirectedMovieVoteAverage, 0, 10)
-  )
-  const baseDef = toStatRange(normalize(careerConsistency, 0, 1))
-  return { baseAtk, baseDef }
+export function computePoolStats(
+  reachValues: number[],
+  qualityValues: number[],
+): { baseAtk: number; baseDef: number }[] {
+  const reachPcts = toPercentileRanks(reachValues)
+  const qualityPcts = toPercentileRanks(qualityValues)
+  return reachPcts.map((r, i) => blendToStats(r, qualityPcts[i]))
 }
 
 // ---------------------------------------------------------------------------
@@ -96,7 +101,7 @@ export function computeDirectorStats(
 export function applyRarityMultiplier(
   baseAtk: number,
   baseDef: number,
-  rarity: RarityTier
+  rarity: RarityTier,
 ): { atk: number; def: number } {
   const { multiplier } = RARITY_TIERS[rarity]
   const atk = Math.max(1, Math.min(999, Math.round(baseAtk * multiplier)))
