@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react"
 import type { PulledCard } from "@/lib/gacha/types"
+import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
 
 interface CardRevealSlotProps {
   card: PulledCard
@@ -47,17 +48,23 @@ const GLOW_CONFIG: Record<
 }
 
 /**
- * Single card slot with optional rarity glow pre-cue and persistent glow.
+ * Single card slot with optional rarity glow pre-cue, persistent glow, and foil overlay.
  *
  * SR+ cards get a colored glow flash that peaks early (40% of duration).
  * SSR/UR/LR cards retain an escalating persistent glow after the flash.
- * C/UC/R cards pass through with no glow treatment.
+ * All R+ cards get a RarityFoilOverlay (C/UC return null internally).
+ * C/UC/R cards receive no glow but do get the foil overlay via the component.
  *
  * Only opacity is animated -- box-shadow is static for GPU safety.
  */
 export function CardRevealSlot({ card, children }: CardRevealSlotProps) {
   if (!GLOW_RARITIES.has(card.rarity)) {
-    return <div className="relative">{children}</div>
+    return (
+      <div className="relative">
+        {children}
+        <RarityFoilOverlay rarity={card.rarity} context="reveal" />
+      </div>
+    )
   }
 
   const config = GLOW_CONFIG[card.rarity]
@@ -83,7 +90,10 @@ export function CardRevealSlot({ card, children }: CardRevealSlotProps) {
       />
 
       {/* Card content -- on top of glow */}
-      <div className="relative">{children}</div>
+      <div className="relative">
+        {children}
+        <RarityFoilOverlay rarity={card.rarity} context="reveal" />
+      </div>
     </div>
   )
 }
