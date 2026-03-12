@@ -70,3 +70,37 @@ export async function getPackStatus(): Promise<
 
   return { data: data as unknown as PackStatus }
 }
+
+/**
+ * Refill packs to 10 after the user watches a rewarded ad.
+ *
+ * Server-side guard: RPC will reject if packs_available > 0.
+ * No ad receipt validation — packs are not monetized.
+ */
+export async function refillPacksAd(): Promise<
+  { data: PackStatus } | { error: string }
+> {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { error: "Not authenticated" }
+  }
+
+  const { data, error } = await supabase.rpc("refill_packs_ad", {
+    p_user_id: user.id,
+  })
+
+  if (error) {
+    if (error.message.includes("not empty")) {
+      return { error: "You still have packs available" }
+    }
+    return { error: "Failed to refill packs" }
+  }
+
+  return { data: data as unknown as PackStatus }
+}
