@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import { Inter, DM_Serif_Display } from 'next/font/google'
 import { RootLayoutShell } from '@/components/layout/root-layout-shell'
 import './globals.css'
@@ -28,6 +29,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${dmSerif.variable}`}>
+      <head>
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9726973184786812"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-text-primary">
         <RootLayoutShell>{children}</RootLayoutShell>
       </body>
