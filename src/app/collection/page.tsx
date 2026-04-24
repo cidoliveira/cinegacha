@@ -5,14 +5,12 @@ import { useGuestSession } from "@/hooks/use-guest-session"
 import {
   getCollectionPage,
   getCollectionProgress,
-  getAlbumsWithProgress,
 } from "@/app/actions/collection"
 import type {
   CardTypeFilter,
   RarityFilter,
   CollectionSortKey,
   CollectionCard,
-  AlbumWithProgress,
 } from "@/app/actions/collection"
 import { CollectionHero } from "@/components/collection/collection-hero"
 import { CollectionFilterBar } from "@/components/collection/collection-filter-bar"
@@ -38,19 +36,9 @@ export default function CollectionPage() {
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState<Progress | null>(null)
-  const [albums, setAlbums] = useState<AlbumWithProgress[]>([])
   const [selectedCard, setSelectedCard] = useState<CollectionCard | null>(null)
 
   const fetchIdRef = useRef(0)
-  // Accumulates all fetched cards for album membership lookups
-  const allCardsRef = useRef<Map<string, CollectionCard>>(new Map())
-
-  // Compute album membership for the currently selected card
-  const albumMembership = selectedCard
-    ? albums
-        .filter((a) => a.card_ids.includes(selectedCard.card_id))
-        .map((a) => a.name)
-    : []
 
   // Fetch progress and albums once session is ready
   useEffect(() => {
@@ -74,12 +62,11 @@ export default function CollectionPage() {
     // })
   }, [isReady])
 
-  // Reset grid when filters or sort change
-  useEffect(() => {
+  const resetGrid = useCallback(() => {
     setCards([])
     setPage(0)
     setHasMore(true)
-  }, [typeFilters, rarityFilters, sort])
+  }, [])
 
   // Fetch page -- re-runs when page OR filters change (fetchId prevents stale writes)
   useEffect(() => {
@@ -87,14 +74,16 @@ export default function CollectionPage() {
 
     const currentFetchId = ++fetchIdRef.current
 
-    setIsLoading(true)
+    async function fetchPage() {
+      setIsLoading(true)
 
-    getCollectionPage(page, {
-      types: typeFilters,
-      rarities: rarityFilters,
-      sort,
-    })
-      .then((result) => {
+      try {
+        const result = await getCollectionPage(page, {
+          types: typeFilters,
+          rarities: rarityFilters,
+          sort,
+        })
+
         if (currentFetchId !== fetchIdRef.current) return // stale fetch
 
         if ("error" in result) {
@@ -102,20 +91,17 @@ export default function CollectionPage() {
           return
         }
 
-        // Add fetched cards to the all-cards map for album lookups
-        for (const card of result.cards) {
-          allCardsRef.current.set(card.card_id, card)
-        }
-
         setCards((prev) =>
           page === 0 ? result.cards : [...prev, ...result.cards]
         )
         setHasMore(result.hasMore)
-      })
-      .finally(() => {
+      } finally {
         if (currentFetchId !== fetchIdRef.current) return
         setIsLoading(false)
-      })
+      }
+    }
+
+    void fetchPage()
   }, [page, typeFilters, rarityFilters, sort, isReady]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = useCallback(() => {
@@ -147,9 +133,18 @@ export default function CollectionPage() {
         typeFilters={typeFilters}
         rarityFilters={rarityFilters}
         sort={sort}
-        onTypeFiltersChange={setTypeFilters}
-        onRarityFiltersChange={setRarityFilters}
-        onSortChange={setSort}
+        onTypeFiltersChange={(filters) => {
+          resetGrid()
+          setTypeFilters(filters)
+        }}
+        onRarityFiltersChange={(filters) => {
+          resetGrid()
+          setRarityFilters(filters)
+        }}
+        onSortChange={(nextSort) => {
+          resetGrid()
+          setSort(nextSort)
+        }}
       />
       <CollectionGrid
         cards={cards}
@@ -165,7 +160,6 @@ export default function CollectionPage() {
       /> */}
       <CollectionDetailModal
         card={selectedCard}
-        albumMembership={albumMembership}
         onClose={() => setSelectedCard(null)}
       />
     </div>

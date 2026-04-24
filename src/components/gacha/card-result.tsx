@@ -1,6 +1,7 @@
 /** @deprecated Use GachaCard from @/components/card/gacha-card instead. Kept for reference during Phase 4 transition. */
 
 import type { PulledCard } from "@/lib/gacha/types"
+import Image from "next/image"
 
 const rarityColorMap: Record<PulledCard["rarity"], string> = {
   C: "var(--color-rarity-c)",
@@ -35,11 +36,13 @@ export function CardResult({ card }: { card: PulledCard }) {
       {/* Card image or placeholder */}
       <div className="relative aspect-[2/3] w-full bg-surface">
         {card.image_path ? (
-          <img
+          <Image
             src={`https://image.tmdb.org/t/p/w300${card.image_path}`}
             alt={card.name}
-            className="h-full w-full object-cover"
-            loading="eager"
+            fill
+            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 18vw"
+            className="object-cover"
+            priority
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center px-2">

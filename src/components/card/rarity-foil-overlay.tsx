@@ -17,8 +17,9 @@ interface RarityFoilOverlayProps {
  * C and UC return null (no overlay).
  * Reduced motion: static gradient with no animation.
  */
-export function RarityFoilOverlay({ rarity, context: _context }: RarityFoilOverlayProps) {
+export function RarityFoilOverlay({ rarity, context }: RarityFoilOverlayProps) {
   const prefersReducedMotion = useReducedMotion()
+  void context
 
   if (rarity === "C" || rarity === "UC") return null
 

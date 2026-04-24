@@ -1,20 +1,22 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useSyncExternalStore } from "react"
 import { useAuthState } from "@/hooks/use-auth-state"
 
 const DISMISSED_KEY = "cinegacha_save_tooltip_dismissed"
 
 export function SaveTooltip() {
   const { isAnonymous, loading } = useAuthState()
-  const [dismissed, setDismissed] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  // Read localStorage on mount (avoids SSR mismatch)
-  useEffect(() => {
-    setDismissed(localStorage.getItem(DISMISSED_KEY) === "true")
-    setMounted(true)
-  }, [])
+  const [dismissed, setDismissed] = useState(() =>
+    typeof window === "undefined"
+      ? true
+      : localStorage.getItem(DISMISSED_KEY) === "true"
+  )
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  )
 
   function handleDismiss() {
     localStorage.setItem(DISMISSED_KEY, "true")

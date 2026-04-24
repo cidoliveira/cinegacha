@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
 /**
@@ -17,7 +17,7 @@ import { createClient } from "@/lib/supabase/client"
 export function useGuestSession() {
   const [isReady, setIsReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     async function ensureSession() {
@@ -57,7 +57,7 @@ export function useGuestSession() {
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [supabase])
 
   return { isReady, userId }
 }

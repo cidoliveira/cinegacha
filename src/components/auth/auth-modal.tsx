@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
@@ -29,6 +29,10 @@ const PROVIDER_CONFIG = {
   github: { label: "Continue with GitHub", Icon: GitHubIcon },
 } as const
 
+function setAnonCookie(userId: string) {
+  document.cookie = `anon_id=${userId}; path=/; max-age=300; SameSite=Lax`
+}
+
 /**
  * Auth modal for OAuth provider sign-in.
  *
@@ -49,6 +53,16 @@ export function AuthModal({
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const searchParams = useSearchParams()
+
+  const retrySignIn = useCallback(async (provider: Provider) => {
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }, [])
 
   // Open/close dialog based on open prop
   useEffect(() => {
@@ -76,17 +90,7 @@ export function AuthModal({
       console.warn("Auth error on return, no provider specified. Continuing anonymously.")
       window.history.replaceState({}, "", "/")
     }
-  }, [searchParams]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function retrySignIn(provider: Provider) {
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-  }
+  }, [retrySignIn, searchParams])
 
   async function handleProviderClick(provider: Provider) {
     setIsLoading(provider)
@@ -97,7 +101,7 @@ export function AuthModal({
       data: { session },
     } = await supabase.auth.getSession()
     if (session?.user.is_anonymous) {
-      document.cookie = `anon_id=${session.user.id}; path=/; max-age=300; SameSite=Lax`
+      setAnonCookie(session.user.id)
     }
 
     // Try linkIdentity first: preserves anonymous user UUID, no migration needed

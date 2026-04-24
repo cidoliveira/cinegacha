@@ -12,26 +12,20 @@ import { useState, useEffect } from "react"
  * @returns secondsLeft (number | null), isReady (boolean), display (M:SS string | null)
  */
 export function usePackTimer(nextPackAt: string | null) {
-  const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
-    if (!nextPackAt) {
-      setSecondsLeft(null)
-      return
-    }
+    if (!nextPackAt) return
 
-    function tick() {
-      const diff = Math.max(
-        0,
-        Math.floor((new Date(nextPackAt!).getTime() - Date.now()) / 1000),
-      )
-      setSecondsLeft(diff)
-    }
-
-    tick()
-    const interval = setInterval(tick, 1000)
+    const interval = setInterval(() => {
+      setNow(Date.now())
+    }, 1000)
     return () => clearInterval(interval)
   }, [nextPackAt])
+
+  const secondsLeft = nextPackAt
+    ? Math.max(0, Math.floor((new Date(nextPackAt).getTime() - now) / 1000))
+    : null
 
   return {
     secondsLeft,

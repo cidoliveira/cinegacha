@@ -74,19 +74,6 @@ export function PackVisual({ onTearComplete }: PackVisualProps) {
   )
 }
 
-/** Zigzag SVG clip-path for crimped seal edges */
-const CRIMP_TOP = `polygon(${Array.from({ length: 26 }, (_, i) => {
-  const x = (i / 25) * 100
-  const y = i % 2 === 0 ? 0 : 3.5
-  return `${x}% ${y}%`
-}).join(", ")}, 100% 100%, 0% 100%)`
-
-const CRIMP_BOTTOM = `polygon(0% 0%, 100% 0%, ${Array.from({ length: 26 }, (_, i) => {
-  const x = 100 - (i / 25) * 100
-  const y = i % 2 === 0 ? 100 : 96.5
-  return `${x}% ${y}%`
-}).join(", ")})`
-
 /**
  * The visual face of the booster pack.
  *

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
@@ -18,8 +18,7 @@ export function useAuthState() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     // Get initial session from local cookie/storage (no network call)
@@ -40,7 +39,7 @@ export function useAuthState() {
     })
 
     return () => subscription.unsubscribe()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [router, supabase])
 
   const isAnonymous = user?.is_anonymous ?? true
   const isAuthenticated = !!user && !user.is_anonymous

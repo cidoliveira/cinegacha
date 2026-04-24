@@ -41,19 +41,31 @@ export function CardDetailModal({ card, onClose }: CardDetailModalProps) {
     const dialog = dialogRef.current
     if (!dialog) return
 
-    if (card) {
+    if (!card) {
+      dialog.close()
+      return
+    }
+
+    let isCurrent = true
+    dialog.showModal()
+
+    async function fetchDetail() {
       setIsLoading(true)
       setDetail(null)
-      dialog.showModal()
 
-      getCardDetail(card.card_id).then((result) => {
-        if ("data" in result) {
-          setDetail(result.data)
-        }
-        setIsLoading(false)
-      })
-    } else {
-      dialog.close()
+      const result = await getCardDetail(card!.card_id)
+      if (!isCurrent) return
+
+      if ("data" in result) {
+        setDetail(result.data)
+      }
+      setIsLoading(false)
+    }
+
+    void fetchDetail()
+
+    return () => {
+      isCurrent = false
     }
   }, [card])
 
@@ -120,12 +132,12 @@ function DetailContent({
 
   const shareRef = useRef<HTMLDivElement>(null)
   const [isSharing, setIsSharing] = useState(false)
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [isTouchDevice] = useState(() =>
+    typeof window === "undefined"
+      ? false
+      : window.matchMedia("(hover: none)").matches
+  )
   const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    setIsTouchDevice(window.matchMedia("(hover: none)").matches)
-  }, [])
 
   async function handleShare() {
     if (!shareRef.current) return

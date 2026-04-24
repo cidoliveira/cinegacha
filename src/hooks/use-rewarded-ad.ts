@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 
 const AD_UNIT_ID = process.env.NEXT_PUBLIC_ADSENSE_REWARDED_AD_UNIT ?? ""
 
@@ -21,21 +21,10 @@ interface UseRewardedAdReturn {
  * show() resolves immediately (acts as a pass-through for development).
  */
 export function useRewardedAd(): UseRewardedAdReturn {
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [isLoaded] = useState(true)
   const [isShowing, setIsShowing] = useState(false)
   const resolveRef = useRef<(() => void) | null>(null)
   const rejectRef = useRef<((err: Error) => void) | null>(null)
-
-  useEffect(() => {
-    if (!AD_UNIT_ID) {
-      setIsLoaded(true)
-      return
-    }
-
-    // TODO: Load Google AdSense rewarded ad script and initialize
-    // For now, mark as loaded so the flow works end-to-end
-    setIsLoaded(true)
-  }, [])
 
   const show = useCallback((): Promise<void> => {
     return new Promise((resolve, reject) => {

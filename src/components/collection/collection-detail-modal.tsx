@@ -14,7 +14,6 @@ import { CardShareImage, downloadShareImage } from "@/components/card/card-share
 
 interface CollectionDetailModalProps {
   card: CollectionCard | null
-  albumMembership: string[]
   onClose: () => void
 }
 
@@ -29,7 +28,6 @@ interface CollectionDetailModalProps {
  */
 export function CollectionDetailModal({
   card,
-  albumMembership,
   onClose,
 }: CollectionDetailModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -82,7 +80,6 @@ export function CollectionDetailModal({
           <ModalContent
             card={card}
             stats={stats}
-            albumMembership={albumMembership}
           />
         )}
       </div>
@@ -93,11 +90,9 @@ export function CollectionDetailModal({
 function ModalContent({
   card,
   stats,
-  albumMembership,
 }: {
   card: CollectionCard
   stats: { atk: number; def: number; dupeCount: number }
-  albumMembership: string[]
 }) {
   const imageUrl = cardImageUrl(card.image_path, card.card_type, "lg")
   const rarityTier = RARITY_TIERS[card.rarity]
@@ -106,12 +101,12 @@ function ModalContent({
 
   const shareRef = useRef<HTMLDivElement>(null)
   const [isSharing, setIsSharing] = useState(false)
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
+  const [isTouchDevice] = useState(() =>
+    typeof window === "undefined"
+      ? false
+      : window.matchMedia("(hover: none)").matches
+  )
   const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    setIsTouchDevice(window.matchMedia("(hover: none)").matches)
-  }, [])
 
   const obtainedDate = new Date(card.obtained_at).toLocaleDateString("en-US", {
     month: "short",

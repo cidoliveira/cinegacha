@@ -21,10 +21,14 @@ export default function AppleIcon() {
           background: '#0a0908',
         }}
       >
-        <img
-          src={`data:image/svg+xml,${encodeURIComponent(svg)}`}
-          width={120}
-          height={120}
+        <div
+          style={{
+            width: 120,
+            height: 120,
+            backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+          }}
         />
       </div>
     ),

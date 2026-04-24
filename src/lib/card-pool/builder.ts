@@ -146,17 +146,6 @@ function makeCardId(cardType: CardType, tmdbId: number): string {
   return `${cardType}-${tmdbId}`
 }
 
-function minMax(values: number[]): { min: number; max: number } {
-  if (values.length === 0) return { min: 0, max: 0 }
-  let min = Infinity
-  let max = -Infinity
-  for (const v of values) {
-    if (v < min) min = v
-    if (v > max) max = v
-  }
-  return { min, max }
-}
-
 function genreNameById(genreId: number): string {
   for (const [name, id] of Object.entries(MOVIE_GENRES)) {
     if (id === genreId) return name
