@@ -1,7 +1,7 @@
-"use server"
+'use server'
 
-import { createClient } from "@/lib/supabase/server"
-import type { CardDisplayData, CardMetadata } from "@/lib/card/types"
+import { createClient } from '@/lib/supabase/server'
+import type { CardDisplayData, CardMetadata } from '@/lib/card/types'
 
 /**
  * Fetch full card detail for a card owned by the authenticated user.
@@ -21,36 +21,36 @@ export async function getCardDetail(
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    return { error: "Not authenticated" }
+    return { error: 'Not authenticated' }
   }
 
   const { data, error } = await supabase
-    .from("user_cards")
+    .from('user_cards')
     .select(
-      "stars, obtained_at, card_pool(id, name, card_type, image_path, rarity, atk, def, metadata)"
+      'stars, obtained_at, card_pool(id, name, card_type, image_path, rarity, atk, def, metadata)'
     )
-    .eq("user_id", user.id)
-    .eq("card_id", cardId)
+    .eq('user_id', user.id)
+    .eq('card_id', cardId)
     .single()
 
   if (error || !data) {
-    return { error: "Card not found" }
+    return { error: 'Card not found' }
   }
 
   // Flatten the join: card_pool fields become top-level
   const pool = data.card_pool as unknown as {
     id: string
     name: string
-    card_type: "movie" | "actor" | "director"
+    card_type: 'movie' | 'actor' | 'director'
     image_path: string | null
-    rarity: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
+    rarity: 'C' | 'UC' | 'R' | 'SR' | 'SSR' | 'UR' | 'LR'
     atk: number
     def: number
     metadata: CardMetadata | null
   }
 
   if (!pool) {
-    return { error: "Card pool data missing" }
+    return { error: 'Card pool data missing' }
   }
 
   const cardDetail: CardDisplayData = {

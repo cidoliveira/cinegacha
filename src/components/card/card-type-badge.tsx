@@ -1,12 +1,9 @@
-type CardType = "movie" | "actor" | "director"
+type CardType = 'movie' | 'actor' | 'director'
 
-const TYPE_CONFIG: Record<
-  CardType,
-  { label: string; textColor: string }
-> = {
-  movie: { label: "FILM", textColor: "text-amber-400" },
-  actor: { label: "ACTOR", textColor: "text-sky-400" },
-  director: { label: "DIRECTOR", textColor: "text-violet-400" },
+const TYPE_CONFIG: Record<CardType, { label: string; textColor: string }> = {
+  movie: { label: 'FILM', textColor: 'text-amber-400' },
+  actor: { label: 'ACTOR', textColor: 'text-sky-400' },
+  director: { label: 'DIRECTOR', textColor: 'text-violet-400' },
 }
 
 /**
@@ -20,7 +17,7 @@ export function CardTypeBadge({ type, className }: { type: CardType; className?:
 
   return (
     <span
-      className={`inline-flex items-center rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm ${config.textColor} ${className ?? ""}`}
+      className={`inline-flex items-center rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium tracking-widest backdrop-blur-sm ${config.textColor} ${className ?? ''}`}
     >
       {config.label}
     </span>

@@ -1,16 +1,16 @@
-"use client"
+'use client'
 
-import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
-import Tilt from "react-parallax-tilt"
-import { useReducedMotion } from "motion/react"
-import type { CollectionCard } from "@/app/actions/collection"
-import { computeEffectiveStats } from "@/lib/card/stats"
-import { cardImageUrl } from "@/lib/card/images"
-import { RARITY_TIERS } from "@/lib/rarity/tiers"
-import { CardTypeBadge } from "@/components/card/card-type-badge"
-import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
-import { CardShareImage, downloadShareImage } from "@/components/card/card-share-image"
+import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
+import Tilt from 'react-parallax-tilt'
+import { useReducedMotion } from 'motion/react'
+import type { CollectionCard } from '@/app/actions/collection'
+import { computeEffectiveStats } from '@/lib/card/stats'
+import { cardImageUrl } from '@/lib/card/images'
+import { RARITY_TIERS } from '@/lib/rarity/tiers'
+import { CardTypeBadge } from '@/components/card/card-type-badge'
+import { RarityFoilOverlay } from '@/components/card/rarity-foil-overlay'
+import { CardShareImage, downloadShareImage } from '@/components/card/card-share-image'
 
 interface CollectionDetailModalProps {
   card: CollectionCard | null
@@ -26,10 +26,7 @@ interface CollectionDetailModalProps {
  * Shows collection-specific info: obtained date and album membership.
  * Dismisses via Escape key, backdrop click, or close button.
  */
-export function CollectionDetailModal({
-  card,
-  onClose,
-}: CollectionDetailModalProps) {
+export function CollectionDetailModal({ card, onClose }: CollectionDetailModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   // Open/close dialog when card changes
@@ -54,9 +51,7 @@ export function CollectionDetailModal({
     }
   }
 
-  const stats = card
-    ? computeEffectiveStats(card.atk, card.def, card.stars)
-    : null
+  const stats = card ? computeEffectiveStats(card.atk, card.def, card.stars) : null
 
   return (
     <dialog
@@ -76,12 +71,7 @@ export function CollectionDetailModal({
           X
         </button>
 
-        {card && stats && (
-          <ModalContent
-            card={card}
-            stats={stats}
-          />
-        )}
+        {card && stats && <ModalContent card={card} stats={stats} />}
       </div>
     </dialog>
   )
@@ -94,7 +84,7 @@ function ModalContent({
   card: CollectionCard
   stats: { atk: number; def: number; dupeCount: number }
 }) {
-  const imageUrl = cardImageUrl(card.image_path, card.card_type, "lg")
+  const imageUrl = cardImageUrl(card.image_path, card.card_type, 'lg')
   const rarityTier = RARITY_TIERS[card.rarity]
   const atkBonus = stats.atk - card.atk
   const defBonus = stats.def - card.def
@@ -102,16 +92,14 @@ function ModalContent({
   const shareRef = useRef<HTMLDivElement>(null)
   const [isSharing, setIsSharing] = useState(false)
   const [isTouchDevice] = useState(() =>
-    typeof window === "undefined"
-      ? false
-      : window.matchMedia("(hover: none)").matches
+    typeof window === 'undefined' ? false : window.matchMedia('(hover: none)').matches
   )
   const prefersReducedMotion = useReducedMotion()
 
-  const obtainedDate = new Date(card.obtained_at).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
+  const obtainedDate = new Date(card.obtained_at).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   })
 
   async function handleShare() {
@@ -120,7 +108,7 @@ function ModalContent({
     try {
       await downloadShareImage(shareRef.current, card.name)
     } catch (err) {
-      console.error("Share image generation failed:", err)
+      console.error('Share image generation failed:', err)
     } finally {
       setIsSharing(false)
     }
@@ -129,7 +117,7 @@ function ModalContent({
   const tiltEnabled = !isTouchDevice && !prefersReducedMotion
 
   // CollectionCard has all fields needed by CardShareImage -- cast to satisfy type
-  const shareCard = card as Parameters<typeof CardShareImage>[0]["card"]
+  const shareCard = card as Parameters<typeof CardShareImage>[0]['card']
 
   return (
     <>
@@ -168,9 +156,7 @@ function ModalContent({
       {/* Card info */}
       <div className="flex flex-col gap-4 p-5">
         {/* Name */}
-        <h2 className="font-display text-2xl italic text-text-primary">
-          {card.name}
-        </h2>
+        <h2 className="font-display text-2xl italic text-text-primary">{card.name}</h2>
 
         {/* Type badge + Rarity label */}
         <div className="flex items-center gap-3">
@@ -200,22 +186,14 @@ function ModalContent({
             <span className="text-xs text-text-muted">ATK</span>
             <span className="text-xl tabular-nums text-text-primary">
               {stats.atk}
-              {atkBonus > 0 && (
-                <span className="ml-1 text-sm text-green-400">
-                  (+{atkBonus})
-                </span>
-              )}
+              {atkBonus > 0 && <span className="ml-1 text-sm text-green-400">(+{atkBonus})</span>}
             </span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-text-muted">DEF</span>
             <span className="text-xl tabular-nums text-text-primary">
               {stats.def}
-              {defBonus > 0 && (
-                <span className="ml-1 text-sm text-green-400">
-                  (+{defBonus})
-                </span>
-              )}
+              {defBonus > 0 && <span className="ml-1 text-sm text-green-400">(+{defBonus})</span>}
             </span>
           </div>
         </div>
@@ -223,9 +201,7 @@ function ModalContent({
         {/* Obtained date */}
         <div className="border-t border-border pt-4">
           <span className="text-xs text-text-muted">Collected on </span>
-          <span className="text-sm text-text-secondary">
-            {obtainedDate}
-          </span>
+          <span className="text-sm text-text-secondary">{obtainedDate}</span>
         </div>
 
         {/* Album membership -- disabled, uncomment to re-enable
@@ -254,17 +230,17 @@ function ModalContent({
           disabled={isSharing}
           className="mt-1 cursor-pointer border-b border-text-muted pb-0.5 text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSharing ? "Generating..." : "Share card"}
+          {isSharing ? 'Generating...' : 'Share card'}
         </button>
       </div>
 
       {/* Off-screen share card -- must NOT be display:none for html-to-image */}
       <div
         style={{
-          position: "fixed",
-          top: "-9999px",
-          left: "-9999px",
-          pointerEvents: "none",
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          pointerEvents: 'none',
         }}
       >
         <CardShareImage card={shareCard} containerRef={shareRef} />

@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { MotionConfig } from "motion/react"
-import { useGuestSession } from "@/hooks/use-guest-session"
-import { PackOpener } from "@/components/gacha/pack-opener"
+import { MotionConfig } from 'motion/react'
+import { useGuestSession } from '@/hooks/use-guest-session'
+import { PackOpener } from '@/components/gacha/pack-opener'
 
 /**
  * Gacha page route.

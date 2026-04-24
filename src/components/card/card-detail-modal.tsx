@@ -1,23 +1,23 @@
-"use client"
+'use client'
 
-import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
-import Tilt from "react-parallax-tilt"
-import { useReducedMotion } from "motion/react"
-import type { PulledCard } from "@/lib/gacha/types"
+import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
+import Tilt from 'react-parallax-tilt'
+import { useReducedMotion } from 'motion/react'
+import type { PulledCard } from '@/lib/gacha/types'
 import type {
   CardDisplayData,
   MovieMetadata,
   ActorMetadata,
   DirectorMetadata,
-} from "@/lib/card/types"
-import { computeEffectiveStats } from "@/lib/card/stats"
-import { cardImageUrl } from "@/lib/card/images"
-import { RARITY_TIERS } from "@/lib/rarity/tiers"
-import { CardTypeBadge } from "@/components/card/card-type-badge"
-import { getCardDetail } from "@/app/actions/cards"
-import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
-import { CardShareImage, downloadShareImage } from "@/components/card/card-share-image"
+} from '@/lib/card/types'
+import { computeEffectiveStats } from '@/lib/card/stats'
+import { cardImageUrl } from '@/lib/card/images'
+import { RARITY_TIERS } from '@/lib/rarity/tiers'
+import { CardTypeBadge } from '@/components/card/card-type-badge'
+import { getCardDetail } from '@/app/actions/cards'
+import { RarityFoilOverlay } from '@/components/card/rarity-foil-overlay'
+import { CardShareImage, downloadShareImage } from '@/components/card/card-share-image'
 
 interface CardDetailModalProps {
   card: PulledCard | null
@@ -56,7 +56,7 @@ export function CardDetailModal({ card, onClose }: CardDetailModalProps) {
       const result = await getCardDetail(card!.card_id)
       if (!isCurrent) return
 
-      if ("data" in result) {
+      if ('data' in result) {
         setDetail(result.data)
       }
       setIsLoading(false)
@@ -81,9 +81,7 @@ export function CardDetailModal({ card, onClose }: CardDetailModalProps) {
     }
   }
 
-  const stats = detail
-    ? computeEffectiveStats(detail.atk, detail.def, detail.stars)
-    : null
+  const stats = detail ? computeEffectiveStats(detail.atk, detail.def, detail.stars) : null
 
   return (
     <dialog
@@ -123,7 +121,7 @@ function DetailContent({
   detail: CardDisplayData
   stats: { atk: number; def: number; dupeCount: number }
 }) {
-  const imageUrl = cardImageUrl(detail.image_path, detail.card_type, "lg")
+  const imageUrl = cardImageUrl(detail.image_path, detail.card_type, 'lg')
   const rarityTier = RARITY_TIERS[detail.rarity]
   const baseAtk = detail.atk
   const baseDef = detail.def
@@ -133,9 +131,7 @@ function DetailContent({
   const shareRef = useRef<HTMLDivElement>(null)
   const [isSharing, setIsSharing] = useState(false)
   const [isTouchDevice] = useState(() =>
-    typeof window === "undefined"
-      ? false
-      : window.matchMedia("(hover: none)").matches
+    typeof window === 'undefined' ? false : window.matchMedia('(hover: none)').matches
   )
   const prefersReducedMotion = useReducedMotion()
 
@@ -145,7 +141,7 @@ function DetailContent({
     try {
       await downloadShareImage(shareRef.current, detail.name)
     } catch (err) {
-      console.error("Share image generation failed:", err)
+      console.error('Share image generation failed:', err)
     } finally {
       setIsSharing(false)
     }
@@ -190,9 +186,7 @@ function DetailContent({
       {/* Card info */}
       <div className="flex flex-col gap-4 p-5">
         {/* Name */}
-        <h2 className="font-display text-2xl italic text-text-primary">
-          {detail.name}
-        </h2>
+        <h2 className="font-display text-2xl italic text-text-primary">{detail.name}</h2>
 
         {/* Type badge + Rarity label */}
         <div className="flex items-center gap-3">
@@ -222,31 +216,20 @@ function DetailContent({
             <span className="text-xs text-text-muted">ATK</span>
             <span className="text-xl tabular-nums text-text-primary">
               {stats.atk}
-              {atkBonus > 0 && (
-                <span className="ml-1 text-sm text-green-400">
-                  (+{atkBonus})
-                </span>
-              )}
+              {atkBonus > 0 && <span className="ml-1 text-sm text-green-400">(+{atkBonus})</span>}
             </span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-text-muted">DEF</span>
             <span className="text-xl tabular-nums text-text-primary">
               {stats.def}
-              {defBonus > 0 && (
-                <span className="ml-1 text-sm text-green-400">
-                  (+{defBonus})
-                </span>
-              )}
+              {defBonus > 0 && <span className="ml-1 text-sm text-green-400">(+{defBonus})</span>}
             </span>
           </div>
         </div>
 
         {/* Type-specific metadata */}
-        <MetadataSection
-          cardType={detail.card_type}
-          metadata={detail.metadata}
-        />
+        <MetadataSection cardType={detail.card_type} metadata={detail.metadata} />
 
         {/* Share button */}
         <button
@@ -255,17 +238,17 @@ function DetailContent({
           disabled={isSharing}
           className="mt-1 cursor-pointer border-b border-text-muted pb-0.5 text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSharing ? "Generating..." : "Share card"}
+          {isSharing ? 'Generating...' : 'Share card'}
         </button>
       </div>
 
       {/* Off-screen share card -- must NOT be display:none for html-to-image */}
       <div
         style={{
-          position: "fixed",
-          top: "-9999px",
-          left: "-9999px",
-          pointerEvents: "none",
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          pointerEvents: 'none',
         }}
       >
         <CardShareImage card={detail} containerRef={shareRef} />
@@ -279,8 +262,8 @@ function MetadataSection({
   cardType,
   metadata,
 }: {
-  cardType: CardDisplayData["card_type"]
-  metadata: CardDisplayData["metadata"]
+  cardType: CardDisplayData['card_type']
+  metadata: CardDisplayData['metadata']
 }) {
   if (!metadata || Object.keys(metadata).length === 0) return null
 
@@ -290,11 +273,9 @@ function MetadataSection({
         Details
       </h3>
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        {cardType === "movie" && <MovieMeta metadata={metadata as MovieMetadata} />}
-        {cardType === "actor" && <ActorMeta metadata={metadata as ActorMetadata} />}
-        {cardType === "director" && (
-          <DirectorMeta metadata={metadata as DirectorMetadata} />
-        )}
+        {cardType === 'movie' && <MovieMeta metadata={metadata as MovieMetadata} />}
+        {cardType === 'actor' && <ActorMeta metadata={metadata as ActorMetadata} />}
+        {cardType === 'director' && <DirectorMeta metadata={metadata as DirectorMetadata} />}
       </div>
     </div>
   )
@@ -303,20 +284,12 @@ function MetadataSection({
 function MovieMeta({ metadata }: { metadata: MovieMetadata }) {
   return (
     <>
-      {metadata.release_date && (
-        <MetaItem label="Year" value={metadata.release_date.slice(0, 4)} />
-      )}
+      {metadata.release_date && <MetaItem label="Year" value={metadata.release_date.slice(0, 4)} />}
       {metadata.vote_average != null && (
-        <MetaItem
-          label="Rating"
-          value={`${metadata.vote_average.toFixed(1)}/10`}
-        />
+        <MetaItem label="Rating" value={`${metadata.vote_average.toFixed(1)}/10`} />
       )}
       {metadata.original_language && (
-        <MetaItem
-          label="Language"
-          value={metadata.original_language.toUpperCase()}
-        />
+        <MetaItem label="Language" value={metadata.original_language.toUpperCase()} />
       )}
     </>
   )
@@ -329,10 +302,7 @@ function ActorMeta({ metadata }: { metadata: ActorMetadata }) {
         <MetaItem label="Credits" value={String(metadata.credit_count)} />
       )}
       {metadata.avg_movie_vote != null && (
-        <MetaItem
-          label="Avg Rating"
-          value={`${metadata.avg_movie_vote.toFixed(1)}/10`}
-        />
+        <MetaItem label="Avg Rating" value={`${metadata.avg_movie_vote.toFixed(1)}/10`} />
       )}
     </>
   )
@@ -345,16 +315,10 @@ function DirectorMeta({ metadata }: { metadata: DirectorMetadata }) {
         <MetaItem label="Credits" value={String(metadata.credit_count)} />
       )}
       {metadata.avg_movie_vote != null && (
-        <MetaItem
-          label="Avg Rating"
-          value={`${metadata.avg_movie_vote.toFixed(1)}/10`}
-        />
+        <MetaItem label="Avg Rating" value={`${metadata.avg_movie_vote.toFixed(1)}/10`} />
       )}
       {metadata.career_consistency != null && (
-        <MetaItem
-          label="Consistency"
-          value={`${Math.round(metadata.career_consistency * 100)}%`}
-        />
+        <MetaItem label="Consistency" value={`${Math.round(metadata.career_consistency * 100)}%`} />
       )}
     </>
   )
@@ -364,9 +328,7 @@ function MetaItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
       <span className="text-xs text-text-muted">{label}</span>
-      <span className="text-sm text-text-secondary">
-        {value}
-      </span>
+      <span className="text-sm text-text-secondary">{value}</span>
     </div>
   )
 }

@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from 'react'
 
 /**
  * Live countdown timer for pack regeneration.
@@ -32,7 +32,7 @@ export function usePackTimer(nextPackAt: string | null) {
     isReady: secondsLeft === 0,
     display:
       secondsLeft !== null
-        ? `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`
+        ? `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`
         : null,
   }
 }

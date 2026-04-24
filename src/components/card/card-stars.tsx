@@ -10,7 +10,7 @@ export function CardStars({ count }: { count: number }) {
   return (
     <div
       className="flex items-center gap-0.5 text-sm text-yellow-400"
-      aria-label={`${count} star${count === 1 ? "" : "s"}`}
+      aria-label={`${count} star${count === 1 ? '' : 's'}`}
     >
       {Array.from({ length: count }, (_, i) => (
         <span key={i} aria-hidden="true">

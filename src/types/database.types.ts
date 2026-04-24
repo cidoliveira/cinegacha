@@ -1,13 +1,7 @@
 // Auto-generated placeholder. Run `supabase gen types typescript` after schema
 // is live to replace.
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export interface Database {
   public: {
@@ -52,10 +46,10 @@ export interface Database {
         Row: {
           id: string
           tmdb_id: number
-          card_type: "movie" | "actor" | "director"
+          card_type: 'movie' | 'actor' | 'director'
           name: string
           image_path: string | null
-          rarity: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
+          rarity: 'C' | 'UC' | 'R' | 'SR' | 'SSR' | 'UR' | 'LR'
           atk: number
           def: number
           metadata: Json
@@ -66,10 +60,10 @@ export interface Database {
         Insert: {
           id: string
           tmdb_id: number
-          card_type: "movie" | "actor" | "director"
+          card_type: 'movie' | 'actor' | 'director'
           name: string
           image_path?: string | null
-          rarity: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
+          rarity: 'C' | 'UC' | 'R' | 'SR' | 'SSR' | 'UR' | 'LR'
           atk: number
           def: number
           metadata?: Json
@@ -80,10 +74,10 @@ export interface Database {
         Update: {
           id?: string
           tmdb_id?: number
-          card_type?: "movie" | "actor" | "director"
+          card_type?: 'movie' | 'actor' | 'director'
           name?: string
           image_path?: string | null
-          rarity?: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
+          rarity?: 'C' | 'UC' | 'R' | 'SR' | 'SSR' | 'UR' | 'LR'
           atk?: number
           def?: number
           metadata?: Json
@@ -117,18 +111,18 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "user_cards_card_id_fkey"
-            columns: ["card_id"]
+            foreignKeyName: 'user_cards_card_id_fkey'
+            columns: ['card_id']
             isOneToOne: false
-            referencedRelation: "card_pool"
-            referencedColumns: ["id"]
+            referencedRelation: 'card_pool'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "user_cards_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'user_cards_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -186,18 +180,18 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "user_album_progress_album_id_fkey"
-            columns: ["album_id"]
+            foreignKeyName: 'user_album_progress_album_id_fkey'
+            columns: ['album_id']
             isOneToOne: false
-            referencedRelation: "albums"
-            referencedColumns: ["id"]
+            referencedRelation: 'albums'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "user_album_progress_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'user_album_progress_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
         ]
       }

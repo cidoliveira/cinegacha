@@ -10,9 +10,9 @@
 export interface PulledCard {
   card_id: string
   name: string
-  card_type: "movie" | "actor" | "director"
+  card_type: 'movie' | 'actor' | 'director'
   image_path: string | null
-  rarity: "C" | "UC" | "R" | "SR" | "SSR" | "UR" | "LR"
+  rarity: 'C' | 'UC' | 'R' | 'SR' | 'SSR' | 'UR' | 'LR'
   atk: number
   def: number
   is_new: boolean

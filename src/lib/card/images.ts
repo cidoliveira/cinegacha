@@ -1,4 +1,4 @@
-const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/"
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/'
 
 /**
  * Type-aware TMDB image size presets.
@@ -6,15 +6,15 @@ const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/"
  */
 export const CARD_IMAGE_SIZES = {
   /** Card thumbnail */
-  sm: { movie: "w342", person: "w185" },
+  sm: { movie: 'w342', person: 'w185' },
   /** Pack reveal */
-  md: { movie: "w500", person: "w185" },
+  md: { movie: 'w500', person: 'w185' },
   /** Detail modal */
-  lg: { movie: "w780", person: "original" },
+  lg: { movie: 'w780', person: 'original' },
 } as const
 
 type ImageSize = keyof typeof CARD_IMAGE_SIZES
-type CardType = "movie" | "actor" | "director"
+type CardType = 'movie' | 'actor' | 'director'
 
 /**
  * Build a TMDB image URL using the correct size for the card type.
@@ -25,11 +25,11 @@ type CardType = "movie" | "actor" | "director"
 export function cardImageUrl(
   imagePath: string | null,
   cardType: CardType,
-  size: ImageSize = "md"
+  size: ImageSize = 'md'
 ): string | null {
   if (imagePath === null) return null
 
-  const sizeKey = cardType === "movie" ? "movie" : "person"
+  const sizeKey = cardType === 'movie' ? 'movie' : 'person'
   const sizeValue = CARD_IMAGE_SIZES[size][sizeKey]
 
   return `${TMDB_IMAGE_BASE}${sizeValue}${imagePath}`

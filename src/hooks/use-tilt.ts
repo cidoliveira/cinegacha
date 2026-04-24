@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useCallback } from "react"
+import { useCallback } from 'react'
 
 /**
  * Bridges pointer events to CSS custom properties for foil position tracking.
@@ -32,22 +32,22 @@ export function useTilt(ref: React.RefObject<HTMLDivElement | null>) {
       const tiltX = -ny * 12
       const tiltY = nx * 12
 
-      el.style.setProperty("--tilt-x", String(tiltX))
-      el.style.setProperty("--tilt-y", String(tiltY))
-      el.style.setProperty("--foil-x", String(Math.round(x * 100)))
-      el.style.setProperty("--foil-y", String(Math.round(y * 100)))
+      el.style.setProperty('--tilt-x', String(tiltX))
+      el.style.setProperty('--tilt-y', String(tiltY))
+      el.style.setProperty('--foil-x', String(Math.round(x * 100)))
+      el.style.setProperty('--foil-y', String(Math.round(y * 100)))
     },
-    [ref],
+    [ref]
   )
 
   const handlePointerLeave = useCallback(() => {
     const el = ref.current
     if (!el) return
 
-    el.style.setProperty("--tilt-x", "0")
-    el.style.setProperty("--tilt-y", "0")
-    el.style.setProperty("--foil-x", "50")
-    el.style.setProperty("--foil-y", "50")
+    el.style.setProperty('--tilt-x', '0')
+    el.style.setProperty('--tilt-y', '0')
+    el.style.setProperty('--foil-x', '50')
+    el.style.setProperty('--foil-y', '50')
   }, [ref])
 
   return { handlePointerMove, handlePointerLeave }

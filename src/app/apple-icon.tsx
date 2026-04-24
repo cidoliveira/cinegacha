@@ -10,28 +10,26 @@ export default function AppleIcon() {
   </svg>`
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#0a0908',
+      }}
+    >
       <div
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#0a0908',
+          width: 120,
+          height: 120,
+          backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
         }}
-      >
-        <div
-          style={{
-            width: 120,
-            height: 120,
-            backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(svg)}")`,
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-          }}
-        />
-      </div>
-    ),
-    { ...size },
+      />
+    </div>,
+    { ...size }
   )
 }

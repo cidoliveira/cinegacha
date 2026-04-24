@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { motion } from "motion/react"
-import type { PulledCard } from "@/lib/gacha/types"
-import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
+import { motion } from 'motion/react'
+import type { PulledCard } from '@/lib/gacha/types'
+import { RarityFoilOverlay } from '@/components/card/rarity-foil-overlay'
 
 interface CardRevealSlotProps {
   card: PulledCard
@@ -10,7 +10,7 @@ interface CardRevealSlotProps {
 }
 
 /** Rarities that receive a glow pre-cue flash before card reveal */
-const GLOW_RARITIES = new Set<PulledCard["rarity"]>(["SR", "SSR", "UR", "LR"])
+const GLOW_RARITIES = new Set<PulledCard['rarity']>(['SR', 'SSR', 'UR', 'LR'])
 
 /**
  * Glow configuration per rarity tier.
@@ -21,27 +21,24 @@ const GLOW_RARITIES = new Set<PulledCard["rarity"]>(["SR", "SSR", "UR", "LR"])
  *   SSR/UR/LR flash and retain a persistent glow of increasing strength.
  * - `times`: keyframe timing -- peak at 40% of duration
  */
-const GLOW_CONFIG: Record<
-  string,
-  { spread: string; keyframes: number[]; times: number[] }
-> = {
+const GLOW_CONFIG: Record<string, { spread: string; keyframes: number[]; times: number[] }> = {
   SR: {
-    spread: "0 0 12px 2px",
+    spread: '0 0 12px 2px',
     keyframes: [0, 0.7, 0],
     times: [0, 0.4, 1],
   },
   SSR: {
-    spread: "0 0 15px 3px",
+    spread: '0 0 15px 3px',
     keyframes: [0, 0.8, 0.3],
     times: [0, 0.4, 1],
   },
   UR: {
-    spread: "0 0 25px 6px",
+    spread: '0 0 25px 6px',
     keyframes: [0, 0.8, 0.5],
     times: [0, 0.4, 1],
   },
   LR: {
-    spread: "0 0 40px 10px",
+    spread: '0 0 40px 10px',
     keyframes: [0, 0.9, 0.7],
     times: [0, 0.4, 1],
   },
@@ -85,7 +82,7 @@ export function CardRevealSlot({ card, children }: CardRevealSlotProps) {
         transition={{
           duration: 0.5,
           times: config.times,
-          ease: "easeOut",
+          ease: 'easeOut',
         }}
       />
 

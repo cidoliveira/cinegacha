@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useEffect } from "react"
-import { usePackTimer } from "@/hooks/use-pack-timer"
-import { MAX_PACKS, PITY_THRESHOLD } from "@/lib/gacha/constants"
+import { useEffect } from 'react'
+import { usePackTimer } from '@/hooks/use-pack-timer'
+import { MAX_PACKS, PITY_THRESHOLD } from '@/lib/gacha/constants'
 
 interface PackStatusBarProps {
   packsAvailable: number
@@ -40,7 +40,7 @@ export function PackStatusBar({
       <div className="flex items-baseline gap-2">
         <span
           className={`text-lg tabular-nums ${
-            packsAvailable > 0 ? "text-text-primary" : "text-text-muted"
+            packsAvailable > 0 ? 'text-text-primary' : 'text-text-muted'
           }`}
         >
           {packsAvailable}/{MAX_PACKS}
@@ -51,18 +51,12 @@ export function PackStatusBar({
       {/* Pity + timer info */}
       <div className="flex items-baseline gap-4 text-xs text-text-muted">
         <span>
-          SR+ in{" "}
-          <span className="text-text-secondary">
-            {packsUntilPity}
-          </span>
+          SR+ in <span className="text-text-secondary">{packsUntilPity}</span>
         </span>
 
         {timer.display !== null ? (
           <span>
-            Next{" "}
-            <span className="tabular-nums text-text-secondary">
-              {timer.display}
-            </span>
+            Next <span className="tabular-nums text-text-secondary">{timer.display}</span>
           </span>
         ) : packsAvailable >= MAX_PACKS ? (
           <span>Full</span>

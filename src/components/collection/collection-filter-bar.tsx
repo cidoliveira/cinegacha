@@ -1,11 +1,7 @@
-"use client"
+'use client'
 
-import type {
-  CardTypeFilter,
-  RarityFilter,
-  CollectionSortKey,
-} from "@/app/actions/collection"
-import { RARITY_TIERS } from "@/lib/rarity/tiers"
+import type { CardTypeFilter, RarityFilter, CollectionSortKey } from '@/app/actions/collection'
+import { RARITY_TIERS } from '@/lib/rarity/tiers'
 
 interface CollectionFilterBarProps {
   typeFilters: CardTypeFilter[]
@@ -20,21 +16,20 @@ function toggleItem<T>(arr: T[], item: T): T[] {
   return arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item]
 }
 
-const TYPE_OPTIONS: { value: CardTypeFilter; label: string; color: string }[] =
-  [
-    { value: "movie", label: "Movie", color: "amber" },
-    { value: "actor", label: "Actor", color: "sky" },
-    { value: "director", label: "Director", color: "violet" },
-  ]
+const TYPE_OPTIONS: { value: CardTypeFilter; label: string; color: string }[] = [
+  { value: 'movie', label: 'Movie', color: 'amber' },
+  { value: 'actor', label: 'Actor', color: 'sky' },
+  { value: 'director', label: 'Director', color: 'violet' },
+]
 
-const RARITY_OPTIONS: RarityFilter[] = ["C", "UC", "R", "SR", "SSR", "UR", "LR"]
+const RARITY_OPTIONS: RarityFilter[] = ['C', 'UC', 'R', 'SR', 'SSR', 'UR', 'LR']
 
 const SORT_OPTIONS: { value: CollectionSortKey; label: string }[] = [
-  { value: "rarity", label: "Rarity" },
-  { value: "name", label: "Name (A-Z)" },
-  { value: "atk", label: "ATK (highest)" },
-  { value: "def", label: "DEF (highest)" },
-  { value: "date", label: "Date (newest)" },
+  { value: 'rarity', label: 'Rarity' },
+  { value: 'name', label: 'Name (A-Z)' },
+  { value: 'atk', label: 'ATK (highest)' },
+  { value: 'def', label: 'DEF (highest)' },
+  { value: 'date', label: 'Date (newest)' },
 ]
 
 export function CollectionFilterBar({
@@ -57,16 +52,20 @@ export function CollectionFilterBar({
               type="button"
               onClick={() => onTypeFiltersChange(toggleItem(typeFilters, value))}
               className={[
-                "text-sm transition-colors cursor-pointer",
+                'text-sm transition-colors cursor-pointer',
                 isActive
-                  ? color === "amber"
-                    ? "text-amber-400"
-                    : color === "sky"
-                      ? "text-sky-400"
-                      : "text-violet-400"
-                  : "text-text-muted hover:text-text-secondary",
-              ].join(" ")}
-              style={isActive ? { borderBottom: "1px solid currentColor", paddingBottom: "2px" } : { paddingBottom: "3px" }}
+                  ? color === 'amber'
+                    ? 'text-amber-400'
+                    : color === 'sky'
+                      ? 'text-sky-400'
+                      : 'text-violet-400'
+                  : 'text-text-muted hover:text-text-secondary',
+              ].join(' ')}
+              style={
+                isActive
+                  ? { borderBottom: '1px solid currentColor', paddingBottom: '2px' }
+                  : { paddingBottom: '3px' }
+              }
             >
               {label}
             </button>
@@ -84,26 +83,22 @@ export function CollectionFilterBar({
             <button
               key={rarity}
               type="button"
-              onClick={() =>
-                onRarityFiltersChange(toggleItem(rarityFilters, rarity))
-              }
+              onClick={() => onRarityFiltersChange(toggleItem(rarityFilters, rarity))}
               className="text-xs font-medium tracking-wider transition-colors cursor-pointer"
               style={
                 isActive
                   ? {
                       color: `var(--color-rarity-${rarityKey})`,
-                      borderBottom: "1px solid currentColor",
-                      paddingBottom: "2px",
+                      borderBottom: '1px solid currentColor',
+                      paddingBottom: '2px',
                     }
                   : {
-                      color: "var(--color-text-muted)",
-                      paddingBottom: "3px",
+                      color: 'var(--color-text-muted)',
+                      paddingBottom: '3px',
                     }
               }
             >
-              {RARITY_TIERS[rarity].label === "Common"
-                ? "C"
-                : rarity}
+              {RARITY_TIERS[rarity].label === 'Common' ? 'C' : rarity}
             </button>
           )
         })}

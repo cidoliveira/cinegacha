@@ -1,7 +1,7 @@
-"use server"
+'use server'
 
-import { createClient } from "@/lib/supabase/server"
-import type { PackOpenResult, PackStatus } from "@/lib/gacha/types"
+import { createClient } from '@/lib/supabase/server'
+import type { PackOpenResult, PackStatus } from '@/lib/gacha/types'
 
 /**
  * Open a pack for the authenticated user.
@@ -23,18 +23,18 @@ export async function openPack(): Promise<
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    return { error: "Not authenticated" }
+    return { error: 'Not authenticated' }
   }
 
-  const { data, error } = await supabase.rpc("open_pack", {
+  const { data, error } = await supabase.rpc('open_pack', {
     p_user_id: user.id,
   })
 
   if (error) {
-    if (error.message.includes("No packs available")) {
-      return { error: "No packs available", code: "NO_PACKS" as const }
+    if (error.message.includes('No packs available')) {
+      return { error: 'No packs available', code: 'NO_PACKS' as const }
     }
-    return { error: "Failed to open pack" }
+    return { error: 'Failed to open pack' }
   }
 
   return { data: data as unknown as PackOpenResult }
@@ -46,9 +46,7 @@ export async function openPack(): Promise<
  * Returns packs available (with regen computed on-read), pity counter,
  * next pack timestamp, and total packs opened.
  */
-export async function getPackStatus(): Promise<
-  { data: PackStatus } | { error: string }
-> {
+export async function getPackStatus(): Promise<{ data: PackStatus } | { error: string }> {
   const supabase = await createClient()
 
   const {
@@ -57,15 +55,15 @@ export async function getPackStatus(): Promise<
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    return { error: "Not authenticated" }
+    return { error: 'Not authenticated' }
   }
 
-  const { data, error } = await supabase.rpc("get_pack_status", {
+  const { data, error } = await supabase.rpc('get_pack_status', {
     p_user_id: user.id,
   })
 
   if (error) {
-    return { error: "Failed to get pack status" }
+    return { error: 'Failed to get pack status' }
   }
 
   return { data: data as unknown as PackStatus }
@@ -77,9 +75,7 @@ export async function getPackStatus(): Promise<
  * Server-side guard: RPC will reject if packs_available > 0.
  * No ad receipt validation — packs are not monetized.
  */
-export async function refillPacksAd(): Promise<
-  { data: PackStatus } | { error: string }
-> {
+export async function refillPacksAd(): Promise<{ data: PackStatus } | { error: string }> {
   const supabase = await createClient()
 
   const {
@@ -88,18 +84,18 @@ export async function refillPacksAd(): Promise<
   } = await supabase.auth.getUser()
 
   if (authError || !user) {
-    return { error: "Not authenticated" }
+    return { error: 'Not authenticated' }
   }
 
-  const { data, error } = await supabase.rpc("refill_packs_ad", {
+  const { data, error } = await supabase.rpc('refill_packs_ad', {
     p_user_id: user.id,
   })
 
   if (error) {
-    if (error.message.includes("not empty")) {
-      return { error: "You still have packs available" }
+    if (error.message.includes('not empty')) {
+      return { error: 'You still have packs available' }
     }
-    return { error: "Failed to refill packs" }
+    return { error: 'Failed to refill packs' }
   }
 
   return { data: data as unknown as PackStatus }

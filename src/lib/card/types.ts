@@ -1,4 +1,4 @@
-import type { PulledCard } from "@/lib/gacha/types"
+import type { PulledCard } from '@/lib/gacha/types'
 
 /** Card data enriched for display in UI components */
 export interface CardDisplayData extends PulledCard {

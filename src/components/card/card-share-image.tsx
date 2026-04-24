@@ -1,38 +1,38 @@
-"use client"
+'use client'
 
-import type { CardDisplayData } from "@/lib/card/types"
-import { cardImageUrl } from "@/lib/card/images"
-import { computeEffectiveStats } from "@/lib/card/stats"
-import { RARITY_TIERS } from "@/lib/rarity/tiers"
+import type { CardDisplayData } from '@/lib/card/types'
+import { cardImageUrl } from '@/lib/card/images'
+import { computeEffectiveStats } from '@/lib/card/stats'
+import { RARITY_TIERS } from '@/lib/rarity/tiers'
 
 // Hardcoded theme colors (CSS custom properties do not serialize reliably for html-to-image)
 const COLORS = {
-  background: "#0a0908",
-  surface: "#151311",
-  surfaceElevated: "#1f1c18",
-  border: "#2e2a24",
-  textPrimary: "#e8dcc8",
-  textSecondary: "#a89e8e",
-  textMuted: "#6b6358",
-  accent: "#dc2626",
+  background: '#0a0908',
+  surface: '#151311',
+  surfaceElevated: '#1f1c18',
+  border: '#2e2a24',
+  textPrimary: '#e8dcc8',
+  textSecondary: '#a89e8e',
+  textMuted: '#6b6358',
+  accent: '#dc2626',
   rarity: {
-    c: "#9ca3af",
-    uc: "#6bcb8a",
-    r: "#6a9fd4",
-    sr: "#b87fd4",
-    ssr: "#d4a83a",
-    ur: "#d45454",
-    lr: "#d46ea0",
+    c: '#9ca3af',
+    uc: '#6bcb8a',
+    r: '#6a9fd4',
+    sr: '#b87fd4',
+    ssr: '#d4a83a',
+    ur: '#d45454',
+    lr: '#d46ea0',
   },
 } as const
 
-const TYPE_LABELS: Record<CardDisplayData["card_type"], string> = {
-  movie: "MOVIE",
-  actor: "ACTOR",
-  director: "DIRECTOR",
+const TYPE_LABELS: Record<CardDisplayData['card_type'], string> = {
+  movie: 'MOVIE',
+  actor: 'ACTOR',
+  director: 'DIRECTOR',
 }
 
-function getRarityColor(rarity: CardDisplayData["rarity"]): string {
+function getRarityColor(rarity: CardDisplayData['rarity']): string {
   return COLORS.rarity[rarity.toLowerCase() as keyof typeof COLORS.rarity]
 }
 
@@ -55,7 +55,7 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
   const typeLabel = TYPE_LABELS[card.card_type]
   const { atk, def, dupeCount } = computeEffectiveStats(card.atk, card.def, card.stars)
 
-  const rawImageUrl = cardImageUrl(card.image_path, card.card_type, "lg")
+  const rawImageUrl = cardImageUrl(card.image_path, card.card_type, 'lg')
   const proxiedImageUrl = rawImageUrl
     ? `/api/image-proxy?url=${encodeURIComponent(rawImageUrl)}`
     : null
@@ -66,44 +66,44 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
       style={{
         width: 540,
         height: 960,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-        fontFamily: "system-ui, sans-serif",
-        position: "relative",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        fontFamily: 'system-ui, sans-serif',
+        position: 'relative',
         background: `radial-gradient(ellipse at 50% 40%, ${COLORS.surfaceElevated} 0%, ${COLORS.background} 70%)`,
       }}
     >
       {/* Subtle film grain texture via noise pattern */}
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           inset: 0,
           opacity: 0.03,
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundSize: "128px 128px",
-          pointerEvents: "none",
+          backgroundSize: '128px 128px',
+          pointerEvents: 'none',
         }}
       />
 
       {/* Top branding */}
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 40,
           left: 0,
           right: 0,
-          display: "flex",
-          justifyContent: "center",
+          display: 'flex',
+          justifyContent: 'center',
         }}
       >
         <span
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
             fontSize: 16,
-            letterSpacing: "0.25em",
+            letterSpacing: '0.25em',
             color: COLORS.textMuted,
             opacity: 0.6,
           }}
@@ -115,9 +115,9 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
       {/* Card container — centered hero */}
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
           gap: 28,
           marginTop: -20,
         }}
@@ -125,11 +125,11 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
         {/* Card image with rarity border + glow */}
         <div
           style={{
-            position: "relative",
+            position: 'relative',
             width: 320,
             height: 448,
             borderRadius: 14,
-            overflow: "hidden",
+            overflow: 'hidden',
             border: `3px solid ${rarityColor}`,
             boxShadow: `0 0 40px ${rarityColor}33, 0 20px 60px rgba(0,0,0,0.6)`,
           }}
@@ -140,20 +140,20 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
               src={proxiedImageUrl}
               alt={card.name}
               style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
               }}
             />
           ) : (
             <div
               style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 backgroundColor: COLORS.surfaceElevated,
               }}
             >
@@ -172,15 +172,15 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
           {/* Rarity badge — top right corner */}
           <span
             style={{
-              position: "absolute",
+              position: 'absolute',
               top: 12,
               right: 12,
               borderRadius: 6,
-              backgroundColor: "rgba(10, 9, 8, 0.85)",
-              padding: "4px 10px",
+              backgroundColor: 'rgba(10, 9, 8, 0.85)',
+              padding: '4px 10px',
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 14,
-              letterSpacing: "0.1em",
+              letterSpacing: '0.1em',
               color: rarityColor,
             }}
           >
@@ -191,9 +191,9 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
         {/* Card info below image */}
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             gap: 10,
             width: 320,
           }}
@@ -204,9 +204,9 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
               margin: 0,
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 32,
-              letterSpacing: "0.04em",
+              letterSpacing: '0.04em',
               color: COLORS.textPrimary,
-              textAlign: "center",
+              textAlign: 'center',
               lineHeight: 1.1,
             }}
           >
@@ -216,12 +216,12 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
           {/* Type + Rarity label */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
               gap: 12,
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 13,
-              letterSpacing: "0.12em",
+              letterSpacing: '0.12em',
             }}
           >
             <span style={{ color: COLORS.textMuted }}>{typeLabel}</span>
@@ -229,9 +229,9 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
               style={{
                 width: 4,
                 height: 4,
-                borderRadius: "50%",
+                borderRadius: '50%',
                 backgroundColor: COLORS.border,
-                display: "inline-block",
+                display: 'inline-block',
               }}
             />
             <span style={{ color: rarityColor }}>{rarityLabel}</span>
@@ -240,20 +240,20 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
           {/* Stats row */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
               gap: 24,
               marginTop: 4,
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 15,
-              letterSpacing: "0.08em",
+              letterSpacing: '0.08em',
             }}
           >
             <span style={{ color: COLORS.textSecondary }}>
               <span style={{ color: COLORS.textMuted, marginRight: 4 }}>ATK</span>
               {atk}
               {dupeCount > 0 && (
-                <span style={{ color: "#4ade80", fontSize: 12, marginLeft: 3 }}>
+                <span style={{ color: '#4ade80', fontSize: 12, marginLeft: 3 }}>
                   +{dupeCount * 10}%
                 </span>
               )}
@@ -262,7 +262,7 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
               <span style={{ color: COLORS.textMuted, marginRight: 4 }}>DEF</span>
               {def}
               {dupeCount > 0 && (
-                <span style={{ color: "#4ade80", fontSize: 12, marginLeft: 3 }}>
+                <span style={{ color: '#4ade80', fontSize: 12, marginLeft: 3 }}>
                   +{dupeCount * 10}%
                 </span>
               )}
@@ -274,13 +274,13 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
       {/* Bottom decorative line + watermark */}
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           bottom: 40,
           left: 0,
           right: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
           gap: 12,
         }}
       >
@@ -295,7 +295,7 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
             fontSize: 11,
-            letterSpacing: "0.2em",
+            letterSpacing: '0.2em',
             color: COLORS.textMuted,
             opacity: 0.4,
           }}
@@ -312,18 +312,15 @@ export function CardShareImage({ card, containerRef }: CardShareImageProps) {
  *
  * Dynamically imports html-to-image to keep it out of the initial bundle.
  */
-export async function downloadShareImage(
-  el: HTMLDivElement,
-  cardName: string
-): Promise<void> {
-  const { toJpeg } = await import("html-to-image")
+export async function downloadShareImage(el: HTMLDivElement, cardName: string): Promise<void> {
+  const { toJpeg } = await import('html-to-image')
   const dataUrl = await toJpeg(el, {
     quality: 0.92,
     pixelRatio: 2,
     cacheBust: true,
   })
-  const link = document.createElement("a")
-  link.download = `cinegacha-${cardName.toLowerCase().replace(/\s+/g, "-")}.jpg`
+  const link = document.createElement('a')
+  link.download = `cinegacha-${cardName.toLowerCase().replace(/\s+/g, '-')}.jpg`
   link.href = dataUrl
   link.click()
 }

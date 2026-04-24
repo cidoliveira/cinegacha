@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { useEffect, useMemo, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useEffect, useMemo, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 /**
  * Ensures an anonymous Supabase session exists before any gacha interaction.
@@ -33,7 +33,7 @@ export function useGuestSession() {
 
       const { data, error } = await supabase.auth.signInAnonymously()
       if (error) {
-        console.error("Failed to create anonymous session:", error)
+        console.error('Failed to create anonymous session:', error)
         setIsReady(true) // Degraded mode
         return
       }
@@ -47,7 +47,7 @@ export function useGuestSession() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
+      if (event === 'SIGNED_OUT') {
         // Session was destroyed (user signed out) -- create fresh anon session
         ensureSession()
       }

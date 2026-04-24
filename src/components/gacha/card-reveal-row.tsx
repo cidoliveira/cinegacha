@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { useEffect } from "react"
-import { motion } from "motion/react"
-import type { PulledCard } from "@/lib/gacha/types"
-import { GachaCard } from "@/components/card/gacha-card"
-import { CardRevealSlot } from "@/components/gacha/card-reveal-slot"
+import { useEffect } from 'react'
+import { motion } from 'motion/react'
+import type { PulledCard } from '@/lib/gacha/types'
+import { GachaCard } from '@/components/card/gacha-card'
+import { CardRevealSlot } from '@/components/gacha/card-reveal-slot'
 
 interface CardRevealRowProps {
   cards: PulledCard[]
@@ -36,7 +36,7 @@ const cardVariants = {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { duration: 0.3, ease: "easeOut" as const },
+    transition: { duration: 0.3, ease: 'easeOut' as const },
   },
 }
 
@@ -57,11 +57,7 @@ function computeRevealDuration(cardCount: number): number {
  *
  * Signals completion via onRevealComplete after all cards finish animating.
  */
-export function CardRevealRow({
-  cards,
-  onCardClick,
-  onRevealComplete,
-}: CardRevealRowProps) {
+export function CardRevealRow({ cards, onCardClick, onRevealComplete }: CardRevealRowProps) {
   // Fire onRevealComplete after all cards finish animating
   useEffect(() => {
     if (!onRevealComplete || cards.length === 0) return
@@ -89,9 +85,7 @@ export function CardRevealRow({
             <GachaCard
               card={card}
               size="md"
-              onClick={
-                onCardClick ? () => onCardClick(card) : undefined
-              }
+              onClick={onCardClick ? () => onCardClick(card) : undefined}
             />
           </CardRevealSlot>
         </motion.div>

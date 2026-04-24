@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from 'zod'
 
 // ---------- Movie (from /discover/movie) ----------
 
@@ -26,9 +26,7 @@ export const tmdbDiscoverMovieResponseSchema = z.object({
   total_results: z.number(),
 })
 
-export type TmdbDiscoverMovieResponse = z.infer<
-  typeof tmdbDiscoverMovieResponseSchema
->
+export type TmdbDiscoverMovieResponse = z.infer<typeof tmdbDiscoverMovieResponseSchema>
 
 // ---------- Person (from /person/popular) ----------
 
@@ -49,9 +47,7 @@ export const tmdbPopularPeopleResponseSchema = z.object({
   total_results: z.number(),
 })
 
-export type TmdbPopularPeopleResponse = z.infer<
-  typeof tmdbPopularPeopleResponseSchema
->
+export type TmdbPopularPeopleResponse = z.infer<typeof tmdbPopularPeopleResponseSchema>
 
 // ---------- Movie Credit (from /person/{id}/movie_credits) ----------
 
@@ -77,9 +73,7 @@ export const tmdbPersonMovieCreditsResponseSchema = z.object({
   crew: z.array(tmdbMovieCreditSchema),
 })
 
-export type TmdbPersonMovieCreditsResponse = z.infer<
-  typeof tmdbPersonMovieCreditsResponseSchema
->
+export type TmdbPersonMovieCreditsResponse = z.infer<typeof tmdbPersonMovieCreditsResponseSchema>
 
 // ---------- Movie Credits (from /movie/{id}/credits) ----------
 
@@ -113,6 +107,4 @@ export const tmdbMovieCreditsResponseSchema = z.object({
   crew: z.array(tmdbCrewMemberSchema),
 })
 
-export type TmdbMovieCreditsResponse = z.infer<
-  typeof tmdbMovieCreditsResponseSchema
->
+export type TmdbMovieCreditsResponse = z.infer<typeof tmdbMovieCreditsResponseSchema>

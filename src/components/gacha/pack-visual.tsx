@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useAnimate } from "motion/react"
+import { useAnimate } from 'motion/react'
 
 interface PackVisualProps {
   onTearComplete: () => void
@@ -17,23 +17,11 @@ export function PackVisual({ onTearComplete }: PackVisualProps) {
   const [scope, animate] = useAnimate()
 
   async function handleTear() {
-    await animate(
-      scope.current,
-      { scale: 1.03 },
-      { duration: 0.15, ease: "easeOut" },
-    )
+    await animate(scope.current, { scale: 1.03 }, { duration: 0.15, ease: 'easeOut' })
 
     await Promise.all([
-      animate(
-        ".pack-top",
-        { y: "-110%", opacity: 0 },
-        { duration: 0.35, ease: "easeIn" },
-      ),
-      animate(
-        ".pack-bottom",
-        { y: "110%", opacity: 0 },
-        { duration: 0.35, ease: "easeIn" },
-      ),
+      animate('.pack-top', { y: '-110%', opacity: 0 }, { duration: 0.35, ease: 'easeIn' }),
+      animate('.pack-bottom', { y: '110%', opacity: 0 }, { duration: 0.35, ease: 'easeIn' }),
     ])
 
     onTearComplete()
@@ -46,12 +34,12 @@ export function PackVisual({ onTearComplete }: PackVisualProps) {
       onClick={handleTear}
       className="group relative cursor-pointer focus-visible:outline-none"
       aria-label="Open booster pack"
-      style={{ transform: "scale(1)" }}
+      style={{ transform: 'scale(1)' }}
     >
       {/* Top half */}
       <div
         className="pack-top pointer-events-none absolute inset-0"
-        style={{ clipPath: "inset(0 0 49.5% 0)" }}
+        style={{ clipPath: 'inset(0 0 49.5% 0)' }}
         aria-hidden="true"
       >
         <PackFace />
@@ -60,7 +48,7 @@ export function PackVisual({ onTearComplete }: PackVisualProps) {
       {/* Bottom half */}
       <div
         className="pack-bottom pointer-events-none absolute inset-0"
-        style={{ clipPath: "inset(49.5% 0 0 0)" }}
+        style={{ clipPath: 'inset(49.5% 0 0 0)' }}
         aria-hidden="true"
       >
         <PackFace />
@@ -93,11 +81,11 @@ function PackFace() {
           const x = (i / 25) * 100
           const y = i % 2 === 0 ? 0 : 3
           return `${x}% ${y}%`
-        }).join(", ")}, ${Array.from({ length: 26 }, (_, i) => {
+        }).join(', ')}, ${Array.from({ length: 26 }, (_, i) => {
           const x = 100 - (i / 25) * 100
           const y = i % 2 === 0 ? 100 : 97
           return `${x}% ${y}%`
-        }).join(", ")})`,
+        }).join(', ')})`,
         background: `
           linear-gradient(
             175deg,
@@ -150,8 +138,8 @@ function PackFace() {
               transparent 80%
             )
           `,
-          backgroundSize: "300% 300%",
-          backgroundRepeat: "no-repeat",
+          backgroundSize: '300% 300%',
+          backgroundRepeat: 'no-repeat',
         }}
       />
 
@@ -169,10 +157,10 @@ function PackFace() {
         <span
           className="font-display text-[32px] italic leading-none"
           style={{
-            background: "linear-gradient(180deg, #3a3530 0%, #1a1815 40%, #3a3530 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            filter: "drop-shadow(0 1px 0px rgba(255,255,255,0.15))",
+            background: 'linear-gradient(180deg, #3a3530 0%, #1a1815 40%, #3a3530 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(0 1px 0px rgba(255,255,255,0.15))',
           }}
         >
           CineGacha
@@ -181,7 +169,7 @@ function PackFace() {
         {/* Subtitle */}
         <span
           className="text-[9px] font-medium tracking-[0.3em] uppercase"
-          style={{ color: "rgba(50, 45, 40, 0.5)" }}
+          style={{ color: 'rgba(50, 45, 40, 0.5)' }}
         >
           Booster Pack
         </span>
@@ -190,7 +178,7 @@ function PackFace() {
       {/* Tap hint */}
       <span
         className="absolute bottom-[15%] text-[9px] font-medium tracking-[0.15em] uppercase opacity-0 transition-opacity group-hover:opacity-100"
-        style={{ color: "rgba(50, 45, 40, 0.4)" }}
+        style={{ color: 'rgba(50, 45, 40, 0.4)' }}
       >
         tap to open
       </span>

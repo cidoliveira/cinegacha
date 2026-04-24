@@ -1,22 +1,22 @@
 /** @deprecated Use GachaCard from @/components/card/gacha-card instead. Kept for reference during Phase 4 transition. */
 
-import type { PulledCard } from "@/lib/gacha/types"
-import Image from "next/image"
+import type { PulledCard } from '@/lib/gacha/types'
+import Image from 'next/image'
 
-const rarityColorMap: Record<PulledCard["rarity"], string> = {
-  C: "var(--color-rarity-c)",
-  UC: "var(--color-rarity-uc)",
-  R: "var(--color-rarity-r)",
-  SR: "var(--color-rarity-sr)",
-  SSR: "var(--color-rarity-ssr)",
-  UR: "var(--color-rarity-ur)",
-  LR: "var(--color-rarity-lr)",
+const rarityColorMap: Record<PulledCard['rarity'], string> = {
+  C: 'var(--color-rarity-c)',
+  UC: 'var(--color-rarity-uc)',
+  R: 'var(--color-rarity-r)',
+  SR: 'var(--color-rarity-sr)',
+  SSR: 'var(--color-rarity-ssr)',
+  UR: 'var(--color-rarity-ur)',
+  LR: 'var(--color-rarity-lr)',
 }
 
-const cardTypeLabelMap: Record<PulledCard["card_type"], string> = {
-  movie: "Movie",
-  actor: "Actor",
-  director: "Director",
+const cardTypeLabelMap: Record<PulledCard['card_type'], string> = {
+  movie: 'Movie',
+  actor: 'Actor',
+  director: 'Director',
 }
 
 /**
@@ -64,10 +64,7 @@ export function CardResult({ card }: { card: PulledCard }) {
           {card.name}
         </h3>
 
-        <span
-          className="font-display text-sm tracking-wider"
-          style={{ color: rarityColor }}
-        >
+        <span className="font-display text-sm tracking-wider" style={{ color: rarityColor }}>
           {card.rarity}
         </span>
 

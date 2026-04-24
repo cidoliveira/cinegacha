@@ -11,34 +11,26 @@ import {
   fetchMovieCredits,
   fetchPopularPeople,
   fetchPersonMovieCredits,
-} from "@/lib/tmdb/client"
-import type {
-  TmdbMovie,
-  TmdbPerson,
-  TmdbCastMember,
-  TmdbCrewMember,
-} from "@/lib/tmdb/types"
+} from '@/lib/tmdb/client'
+import type { TmdbMovie, TmdbPerson, TmdbCastMember, TmdbCrewMember } from '@/lib/tmdb/types'
 import {
   computeMovieRarityScore,
   computeActorRarityScore,
   computeDirectorRarityScore,
   assignRarityTiers,
-} from "@/lib/rarity/calculator"
-import type { RarityTier } from "@/lib/rarity/tiers"
-import {
-  computePoolStats,
-  applyRarityMultiplier,
-} from "@/lib/card-pool/stats"
-import { validateImageUrl } from "@/lib/card-pool/validator"
-import { createAdminClient } from "@/lib/supabase/admin"
-import type { Database } from "@/types/database.types"
+} from '@/lib/rarity/calculator'
+import type { RarityTier } from '@/lib/rarity/tiers'
+import { computePoolStats, applyRarityMultiplier } from '@/lib/card-pool/stats'
+import { validateImageUrl } from '@/lib/card-pool/validator'
+import { createAdminClient } from '@/lib/supabase/admin'
+import type { Database } from '@/types/database.types'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type CardPoolInsert = Database["public"]["Tables"]["card_pool"]["Insert"]
-type CardType = "movie" | "actor" | "director"
+type CardPoolInsert = Database['public']['Tables']['card_pool']['Insert']
+type CardType = 'movie' | 'actor' | 'director'
 
 interface SeedResult {
   totalCards: number
@@ -111,10 +103,10 @@ const GENRE_PAGE_COUNTS: Record<number, number> = {
 
 // Era ranges for temporal diversity (top 4 genres only)
 const ERA_RANGES = [
-  { gte: "1900-01-01", lte: "1969-12-31", label: "Classic" },
-  { gte: "1970-01-01", lte: "1989-12-31", label: "70s-80s" },
-  { gte: "1990-01-01", lte: "2009-12-31", label: "90s-2000s" },
-  { gte: "2010-01-01", lte: "2025-12-31", label: "Modern" },
+  { gte: '1900-01-01', lte: '1969-12-31', label: 'Classic' },
+  { gte: '1970-01-01', lte: '1989-12-31', label: '70s-80s' },
+  { gte: '1990-01-01', lte: '2009-12-31', label: '90s-2000s' },
+  { gte: '2010-01-01', lte: '2025-12-31', label: 'Modern' },
 ] as const
 
 // Genres that get era-split queries (top 4 by page count)
@@ -172,9 +164,7 @@ async function fetchMoviesByGenre(): Promise<TmdbMovie[]> {
     if (ERA_SPLIT_GENRES.has(genreId)) {
       // Era-split: 1 page per era for temporal diversity
       for (const era of ERA_RANGES) {
-        console.log(
-          `[seed] Genre ${genreName} (${era.label}): fetching 1 page`,
-        )
+        console.log(`[seed] Genre ${genreName} (${era.label}): fetching 1 page`)
         const response = await fetchDiscoverMoviesByGenre(genreId, 1, {
           releaseDateGte: era.gte,
           releaseDateLte: era.lte,
@@ -188,9 +178,7 @@ async function fetchMoviesByGenre(): Promise<TmdbMovie[]> {
     } else {
       // Standard: fetch pageCount pages
       for (let page = 1; page <= pageCount; page++) {
-        console.log(
-          `[seed] Genre ${genreName}: fetching page ${page}/${pageCount}`,
-        )
+        console.log(`[seed] Genre ${genreName}: fetching page ${page}/${pageCount}`)
         const response = await fetchDiscoverMoviesByGenre(genreId, page)
         for (const movie of response.results) {
           if (movie.poster_path !== null && !movieMap.has(movie.id)) {
@@ -201,9 +189,7 @@ async function fetchMoviesByGenre(): Promise<TmdbMovie[]> {
     }
 
     const newCount = movieMap.size - beforeCount
-    console.log(
-      `[seed] Genre ${genreName}: ${newCount} new movies (${movieMap.size} total)`,
-    )
+    console.log(`[seed] Genre ${genreName}: ${newCount} new movies (${movieMap.size} total)`)
   }
 
   console.log(`[seed] ${movieMap.size} unique movies after deduplication`)
@@ -242,8 +228,7 @@ async function extractPeopleFromMovies(movieIds: number[]): Promise<{
           name: member.name,
           profile_path: member.profile_path,
           popularity: member.popularity,
-          known_for_department:
-            member.known_for_department ?? "Acting",
+          known_for_department: member.known_for_department ?? 'Acting',
         })
       }
     }
@@ -251,9 +236,9 @@ async function extractPeopleFromMovies(movieIds: number[]): Promise<{
     // Extract directors (only people whose primary department is Directing)
     const directors = credits.crew.filter(
       (c: TmdbCrewMember) =>
-        c.job === "Director" &&
+        c.job === 'Director' &&
         c.profile_path !== null &&
-        (!c.known_for_department || c.known_for_department === "Directing"),
+        (!c.known_for_department || c.known_for_department === 'Directing')
     )
 
     for (const member of directors) {
@@ -263,14 +248,14 @@ async function extractPeopleFromMovies(movieIds: number[]): Promise<{
           name: member.name,
           profile_path: member.profile_path,
           popularity: member.popularity,
-          known_for_department: "Directing",
+          known_for_department: 'Directing',
         })
       }
     }
   }
 
   console.log(
-    `[seed] Extracted ${actorsMap.size} unique actors, ${directorsMap.size} unique directors from movie credits`,
+    `[seed] Extracted ${actorsMap.size} unique actors, ${directorsMap.size} unique directors from movie credits`
   )
 
   return {
@@ -287,14 +272,14 @@ async function supplementPeople(
   actorsMap: Map<number, TmdbPerson>,
   directorsMap: Map<number, TmdbPerson>,
   minActors: number,
-  minDirectors: number,
+  minDirectors: number
 ): Promise<void> {
   if (actorsMap.size >= minActors && directorsMap.size >= minDirectors) {
     return
   }
 
   console.log(
-    `[seed] Supplementing people (actors: ${actorsMap.size}/${minActors}, directors: ${directorsMap.size}/${minDirectors})`,
+    `[seed] Supplementing people (actors: ${actorsMap.size}/${minActors}, directors: ${directorsMap.size}/${minDirectors})`
   )
 
   const pages = 10
@@ -305,31 +290,21 @@ async function supplementPeople(
     for (const person of response.results) {
       if (person.profile_path === null) continue
 
-      if (
-        person.known_for_department === "Acting" &&
-        !actorsMap.has(person.id)
-      ) {
+      if (person.known_for_department === 'Acting' && !actorsMap.has(person.id)) {
         actorsMap.set(person.id, person)
-      } else if (
-        person.known_for_department === "Directing" &&
-        !directorsMap.has(person.id)
-      ) {
+      } else if (person.known_for_department === 'Directing' && !directorsMap.has(person.id)) {
         directorsMap.set(person.id, person)
       }
     }
   }
 
-  console.log(
-    `[seed] After supplement: ${actorsMap.size} actors, ${directorsMap.size} directors`,
-  )
+  console.log(`[seed] After supplement: ${actorsMap.size} actors, ${directorsMap.size} directors`)
 }
 
 const ANIMATION_GENRE_ID = 16
 const TOP_N_CREDITS_FOR_AVG = 10
 
-async function processActorCredits(
-  actors: TmdbPerson[],
-): Promise<ProcessedPerson[]> {
+async function processActorCredits(actors: TmdbPerson[]): Promise<ProcessedPerson[]> {
   const processed: ProcessedPerson[] = []
   let skippedAnimation = 0
 
@@ -344,9 +319,7 @@ async function processActorCredits(
     if (qualifying.length < 3) continue
 
     // Skip animation-dominant actors (>50% of credits are animation genre)
-    const animationCount = qualifying.filter((c) =>
-      c.genre_ids.includes(ANIMATION_GENRE_ID),
-    ).length
+    const animationCount = qualifying.filter((c) => c.genre_ids.includes(ANIMATION_GENRE_ID)).length
     if (animationCount / qualifying.length > 0.5) {
       skippedAnimation++
       continue
@@ -356,8 +329,7 @@ async function processActorCredits(
     const topCredits = [...qualifying]
       .sort((a, b) => b.vote_average - a.vote_average)
       .slice(0, TOP_N_CREDITS_FOR_AVG)
-    const avgMovieVote =
-      topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
+    const avgMovieVote = topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
     const totalVoteCount = topCredits.reduce((sum, c) => sum + c.vote_count, 0)
 
     processed.push({
@@ -370,14 +342,12 @@ async function processActorCredits(
   }
 
   console.log(
-    `[seed] ${processed.length} actors with 3+ qualifying credits (${skippedAnimation} animation-dominant skipped)`,
+    `[seed] ${processed.length} actors with 3+ qualifying credits (${skippedAnimation} animation-dominant skipped)`
   )
   return processed
 }
 
-async function processDirectorCredits(
-  directors: TmdbPerson[],
-): Promise<ProcessedPerson[]> {
+async function processDirectorCredits(directors: TmdbPerson[]): Promise<ProcessedPerson[]> {
   const processed: ProcessedPerson[] = []
 
   for (let i = 0; i < directors.length; i++) {
@@ -386,7 +356,7 @@ async function processDirectorCredits(
       console.log(`[seed] Processing director credits ${i + 1}/${directors.length}`)
     }
     const credits = await fetchPersonMovieCredits(person.id)
-    const directedCredits = credits.crew.filter((c) => c.job === "Director")
+    const directedCredits = credits.crew.filter((c) => c.job === 'Director')
     const qualifying = directedCredits.filter((c) => c.vote_count >= 10)
 
     if (qualifying.length < 3) continue
@@ -395,12 +365,9 @@ async function processDirectorCredits(
     const topCredits = [...qualifying]
       .sort((a, b) => b.vote_average - a.vote_average)
       .slice(0, TOP_N_CREDITS_FOR_AVG)
-    const avgMovieVote =
-      topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
+    const avgMovieVote = topCredits.reduce((sum, c) => sum + c.vote_average, 0) / topCredits.length
     const totalVoteCount = topCredits.reduce((sum, c) => sum + c.vote_count, 0)
-    const consistentCount = qualifying.filter(
-      (c) => c.vote_average > 6.0,
-    ).length
+    const consistentCount = qualifying.filter((c) => c.vote_average > 6.0).length
     const careerConsistency = consistentCount / qualifying.length
 
     processed.push({
@@ -428,7 +395,7 @@ async function validateImages<T>(
   items: T[],
   getPath: (item: T) => string | null,
   size: string,
-  label: string,
+  label: string
 ): Promise<T[]> {
   console.log(`[seed] Validating ${items.length} ${label} images...`)
 
@@ -437,13 +404,11 @@ async function validateImages<T>(
       const path = getPath(item)
       if (!path) return false
       return validateImageUrl(path, size)
-    }),
+    })
   )
 
   const valid = items.filter((_, i) => results[i])
-  console.log(
-    `[seed] ${label} images: ${valid.length}/${items.length} valid`,
-  )
+  console.log(`[seed] ${label} images: ${valid.length}/${items.length} valid`)
   return valid
 }
 
@@ -454,10 +419,10 @@ async function validateImages<T>(
 function buildMovieCards(
   movies: TmdbMovie[],
   tieredMovies: (RarityEntity & { rarity: RarityTier })[],
-  statsMap: Map<string, { baseAtk: number; baseDef: number }>,
+  statsMap: Map<string, { baseAtk: number; baseDef: number }>
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredMovies.map((t) => [t.id, t.rarity]))
-  const movieMap = new Map(movies.map((m) => [makeCardId("movie", m.id), m]))
+  const movieMap = new Map(movies.map((m) => [makeCardId('movie', m.id), m]))
 
   return tieredMovies.map((t) => {
     const movie = movieMap.get(t.id)!
@@ -468,7 +433,7 @@ function buildMovieCards(
     return {
       id: t.id,
       tmdb_id: movie.id,
-      card_type: "movie" as const,
+      card_type: 'movie' as const,
       name: movie.title,
       image_path: movie.poster_path,
       rarity,
@@ -491,12 +456,10 @@ function buildMovieCards(
 function buildActorCards(
   processedActors: ProcessedPerson[],
   tieredActors: (RarityEntity & { rarity: RarityTier })[],
-  statsMap: Map<string, { baseAtk: number; baseDef: number }>,
+  statsMap: Map<string, { baseAtk: number; baseDef: number }>
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredActors.map((t) => [t.id, t.rarity]))
-  const actorMap = new Map(
-    processedActors.map((a) => [makeCardId("actor", a.person.id), a]),
-  )
+  const actorMap = new Map(processedActors.map((a) => [makeCardId('actor', a.person.id), a]))
 
   return tieredActors.map((t) => {
     const actor = actorMap.get(t.id)!
@@ -507,7 +470,7 @@ function buildActorCards(
     return {
       id: t.id,
       tmdb_id: actor.person.id,
-      card_type: "actor" as const,
+      card_type: 'actor' as const,
       name: actor.person.name,
       image_path: actor.person.profile_path,
       rarity,
@@ -527,11 +490,11 @@ function buildActorCards(
 function buildDirectorCards(
   processedDirectors: ProcessedPerson[],
   tieredDirectors: (RarityEntity & { rarity: RarityTier })[],
-  statsMap: Map<string, { baseAtk: number; baseDef: number }>,
+  statsMap: Map<string, { baseAtk: number; baseDef: number }>
 ): CardPoolInsert[] {
   const tierMap = new Map(tieredDirectors.map((t) => [t.id, t.rarity]))
   const directorMap = new Map(
-    processedDirectors.map((d) => [makeCardId("director", d.person.id), d]),
+    processedDirectors.map((d) => [makeCardId('director', d.person.id), d])
   )
 
   return tieredDirectors.map((t) => {
@@ -543,7 +506,7 @@ function buildDirectorCards(
     return {
       id: t.id,
       tmdb_id: director.person.id,
-      card_type: "director" as const,
+      card_type: 'director' as const,
       name: director.person.name,
       image_path: director.person.profile_path,
       rarity,
@@ -572,16 +535,12 @@ async function batchUpsert(cards: CardPoolInsert[]): Promise<void> {
   for (let i = 0; i < cards.length; i += BATCH_SIZE) {
     const batch = cards.slice(i, i + BATCH_SIZE)
     console.log(
-      `[seed] Upserting batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(cards.length / BATCH_SIZE)} (${batch.length} cards)`,
+      `[seed] Upserting batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(cards.length / BATCH_SIZE)} (${batch.length} cards)`
     )
-    const { error } = await supabase
-      .from("card_pool")
-      .upsert(batch, { onConflict: "id" })
+    const { error } = await supabase.from('card_pool').upsert(batch, { onConflict: 'id' })
 
     if (error) {
-      throw new Error(
-        `Upsert failed at batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`,
-      )
+      throw new Error(`Upsert failed at batch ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`)
     }
   }
 }
@@ -611,38 +570,34 @@ function countByRarity(cards: CardPoolInsert[]): Record<string, number> {
 // ---------------------------------------------------------------------------
 
 export async function seedCardPool(): Promise<SeedResult> {
-  console.log("[seed] Starting card pool seed...")
+  console.log('[seed] Starting card pool seed...')
 
   // 1. Clear existing data (user_cards first due to FK constraint, then card_pool)
   const supabase = createAdminClient()
-  console.log("[seed] Clearing existing user_cards...")
+  console.log('[seed] Clearing existing user_cards...')
   const { error: userCardsError } = await supabase
-    .from("user_cards")
+    .from('user_cards')
     .delete()
-    .neq("id", "00000000-0000-0000-0000-000000000000")
+    .neq('id', '00000000-0000-0000-0000-000000000000')
 
   if (userCardsError) {
     throw new Error(`Failed to clear user_cards: ${userCardsError.message}`)
   }
 
-  console.log("[seed] Clearing existing card pool...")
-  const { error: deleteError } = await supabase
-    .from("card_pool")
-    .delete()
-    .neq("id", "")
+  console.log('[seed] Clearing existing card pool...')
+  const { error: deleteError } = await supabase.from('card_pool').delete().neq('id', '')
 
   if (deleteError) {
     throw new Error(`Failed to clear card pool: ${deleteError.message}`)
   }
-  console.log("[seed] Cleared existing card pool")
+  console.log('[seed] Cleared existing card pool')
 
   // 2. Fetch movies by genre (genre-based discover with era splits)
   const movies = await fetchMoviesByGenre()
 
   // 3. Extract people from movie credits
   const movieIds = movies.map((m) => m.id)
-  const { actors: rawActors, directors: rawDirectors } =
-    await extractPeopleFromMovies(movieIds)
+  const { actors: rawActors, directors: rawDirectors } = await extractPeopleFromMovies(movieIds)
 
   // Supplement if people count is low
   const actorsMap = new Map(rawActors.map((a) => [a.id, a]))
@@ -664,27 +619,12 @@ export async function seedCardPool(): Promise<SeedResult> {
   }
 
   // 4. Validate images for all candidates
-  const validMovies = await validateImages(
-    movies,
-    (m) => m.poster_path,
-    "w500",
-    "movie",
-  )
-  const validActors = await validateImages(
-    actors,
-    (a) => a.profile_path,
-    "w185",
-    "actor",
-  )
-  const validDirectors = await validateImages(
-    directors,
-    (d) => d.profile_path,
-    "w185",
-    "director",
-  )
+  const validMovies = await validateImages(movies, (m) => m.poster_path, 'w500', 'movie')
+  const validActors = await validateImages(actors, (a) => a.profile_path, 'w185', 'actor')
+  const validDirectors = await validateImages(directors, (d) => d.profile_path, 'w185', 'director')
 
   console.log(
-    `[seed] After image validation: ${validMovies.length} movies, ${validActors.length} actors, ${validDirectors.length} directors`,
+    `[seed] After image validation: ${validMovies.length} movies, ${validActors.length} actors, ${validDirectors.length} directors`
   )
 
   // 5. Process credits for validated people
@@ -693,64 +633,64 @@ export async function seedCardPool(): Promise<SeedResult> {
 
   // 6. Compute rarity scores
   const movieEntities: RarityEntity[] = validMovies.map((m) => ({
-    id: makeCardId("movie", m.id),
+    id: makeCardId('movie', m.id),
     rarityScore: computeMovieRarityScore(m.popularity, m.vote_average, m.vote_count),
   }))
 
   const actorEntities: RarityEntity[] = processedActors.map((a) => ({
-    id: makeCardId("actor", a.person.id),
+    id: makeCardId('actor', a.person.id),
     rarityScore: computeActorRarityScore(
       a.person.popularity,
       a.avgMovieVote,
       a.movieCreditCount,
-      a.totalVoteCount,
+      a.totalVoteCount
     ),
   }))
 
   const directorEntities: RarityEntity[] = processedDirectors.map((d) => ({
-    id: makeCardId("director", d.person.id),
+    id: makeCardId('director', d.person.id),
     rarityScore: computeDirectorRarityScore(
       d.person.popularity,
       d.avgMovieVote,
       d.movieCreditCount,
-      d.totalVoteCount,
+      d.totalVoteCount
     ),
   }))
 
   // 7. Assign rarity tiers per card type
-  console.log("[seed] Assigning rarity tiers...")
+  console.log('[seed] Assigning rarity tiers...')
   const tieredMovies = assignRarityTiers(movieEntities)
   const tieredActors = assignRarityTiers(actorEntities)
   const tieredDirectors = assignRarityTiers(directorEntities)
 
   // 8. Compute pool-wide stats (percentile-ranked reach × quality blend)
-  console.log("[seed] Computing pool-wide stats...")
+  console.log('[seed] Computing pool-wide stats...')
   const moviePoolStats = computePoolStats(
     validMovies.map((m) => m.popularity),
-    validMovies.map((m) => m.vote_average),
+    validMovies.map((m) => m.vote_average)
   )
   const movieStatsMap = new Map(
-    validMovies.map((m, i) => [makeCardId("movie", m.id), moviePoolStats[i]]),
+    validMovies.map((m, i) => [makeCardId('movie', m.id), moviePoolStats[i]])
   )
 
   const actorPoolStats = computePoolStats(
     processedActors.map((a) => a.person.popularity),
-    processedActors.map((a) => a.avgMovieVote),
+    processedActors.map((a) => a.avgMovieVote)
   )
   const actorStatsMap = new Map(
-    processedActors.map((a, i) => [makeCardId("actor", a.person.id), actorPoolStats[i]]),
+    processedActors.map((a, i) => [makeCardId('actor', a.person.id), actorPoolStats[i]])
   )
 
   const directorPoolStats = computePoolStats(
     processedDirectors.map((d) => d.person.popularity),
-    processedDirectors.map((d) => 0.7 * (d.avgMovieVote / 10) + 0.3 * d.careerConsistency),
+    processedDirectors.map((d) => 0.7 * (d.avgMovieVote / 10) + 0.3 * d.careerConsistency)
   )
   const directorStatsMap = new Map(
-    processedDirectors.map((d, i) => [makeCardId("director", d.person.id), directorPoolStats[i]]),
+    processedDirectors.map((d, i) => [makeCardId('director', d.person.id), directorPoolStats[i]])
   )
 
   // 9. Build card records
-  console.log("[seed] Building card records...")
+  console.log('[seed] Building card records...')
   const movieCards = buildMovieCards(validMovies, tieredMovies, movieStatsMap)
   const actorCards = buildActorCards(processedActors, tieredActors, actorStatsMap)
   const directorCards = buildDirectorCards(processedDirectors, tieredDirectors, directorStatsMap)
@@ -768,7 +708,7 @@ export async function seedCardPool(): Promise<SeedResult> {
     byRarity: countByRarity(allCards),
   }
 
-  console.log("[seed] Seed complete!", JSON.stringify(summary, null, 2))
+  console.log('[seed] Seed complete!', JSON.stringify(summary, null, 2))
   return summary
 }
 
@@ -777,16 +717,14 @@ export async function seedCardPool(): Promise<SeedResult> {
 // ---------------------------------------------------------------------------
 
 export async function refreshCardPool(): Promise<RefreshResult> {
-  console.log("[refresh] Starting card pool refresh...")
+  console.log('[refresh] Starting card pool refresh...')
 
   // 1. Fetch movies from top 5 genres (2 pages each, no era splitting)
   const movieMap = new Map<number, TmdbMovie>()
   for (const genreId of REFRESH_GENRES) {
     const genreName = genreNameById(genreId)
     for (let page = 1; page <= 2; page++) {
-      console.log(
-        `[refresh] Genre ${genreName}: fetching page ${page}/2`,
-      )
+      console.log(`[refresh] Genre ${genreName}: fetching page ${page}/2`)
       const response = await fetchDiscoverMoviesByGenre(genreId, page)
       for (const movie of response.results) {
         if (movie.poster_path !== null && !movieMap.has(movie.id)) {
@@ -808,10 +746,8 @@ export async function refreshCardPool(): Promise<RefreshResult> {
 
   // 4. Query existing card IDs
   const supabase = createAdminClient()
-  console.log("[refresh] Querying existing card pool IDs...")
-  const { data: existingRows, error: fetchError } = await supabase
-    .from("card_pool")
-    .select("id")
+  console.log('[refresh] Querying existing card pool IDs...')
+  const { data: existingRows, error: fetchError } = await supabase.from('card_pool').select('id')
 
   if (fetchError) {
     throw new Error(`Failed to query card pool: ${fetchError.message}`)
@@ -821,88 +757,80 @@ export async function refreshCardPool(): Promise<RefreshResult> {
   console.log(`[refresh] Found ${existingIds.size} existing cards`)
 
   // 5. Separate new vs existing
-  const newMovies = movies.filter(
-    (m) => !existingIds.has(makeCardId("movie", m.id)),
-  )
-  const existingMovies = movies.filter((m) =>
-    existingIds.has(makeCardId("movie", m.id)),
-  )
+  const newMovies = movies.filter((m) => !existingIds.has(makeCardId('movie', m.id)))
+  const existingMovies = movies.filter((m) => existingIds.has(makeCardId('movie', m.id)))
   const newActors = processedActors.filter(
-    (a) => !existingIds.has(makeCardId("actor", a.person.id)),
+    (a) => !existingIds.has(makeCardId('actor', a.person.id))
   )
   const existingActors = processedActors.filter((a) =>
-    existingIds.has(makeCardId("actor", a.person.id)),
+    existingIds.has(makeCardId('actor', a.person.id))
   )
   const newDirectors = processedDirectors.filter(
-    (d) => !existingIds.has(makeCardId("director", d.person.id)),
+    (d) => !existingIds.has(makeCardId('director', d.person.id))
   )
   const existingDirectors = processedDirectors.filter((d) =>
-    existingIds.has(makeCardId("director", d.person.id)),
+    existingIds.has(makeCardId('director', d.person.id))
   )
 
   console.log(
-    `[refresh] New: ${newMovies.length} movies, ${newActors.length} actors, ${newDirectors.length} directors`,
+    `[refresh] New: ${newMovies.length} movies, ${newActors.length} actors, ${newDirectors.length} directors`
   )
   console.log(
-    `[refresh] Existing: ${existingMovies.length} movies, ${existingActors.length} actors, ${existingDirectors.length} directors`,
+    `[refresh] Existing: ${existingMovies.length} movies, ${existingActors.length} actors, ${existingDirectors.length} directors`
   )
 
   // 6. Process NEW entities: compute rarity, assign tiers, compute stats, insert
   const newMovieEntities: RarityEntity[] = newMovies.map((m) => ({
-    id: makeCardId("movie", m.id),
+    id: makeCardId('movie', m.id),
     rarityScore: computeMovieRarityScore(m.popularity, m.vote_average, m.vote_count),
   }))
   const newActorEntities: RarityEntity[] = newActors.map((a) => ({
-    id: makeCardId("actor", a.person.id),
+    id: makeCardId('actor', a.person.id),
     rarityScore: computeActorRarityScore(
       a.person.popularity,
       a.avgMovieVote,
       a.movieCreditCount,
-      a.totalVoteCount,
+      a.totalVoteCount
     ),
   }))
   const newDirectorEntities: RarityEntity[] = newDirectors.map((d) => ({
-    id: makeCardId("director", d.person.id),
+    id: makeCardId('director', d.person.id),
     rarityScore: computeDirectorRarityScore(
       d.person.popularity,
       d.avgMovieVote,
       d.movieCreditCount,
-      d.totalVoteCount,
+      d.totalVoteCount
     ),
   }))
 
-  const tieredNewMovies =
-    newMovieEntities.length > 0 ? assignRarityTiers(newMovieEntities) : []
-  const tieredNewActors =
-    newActorEntities.length > 0 ? assignRarityTiers(newActorEntities) : []
+  const tieredNewMovies = newMovieEntities.length > 0 ? assignRarityTiers(newMovieEntities) : []
+  const tieredNewActors = newActorEntities.length > 0 ? assignRarityTiers(newActorEntities) : []
   const tieredNewDirectors =
-    newDirectorEntities.length > 0
-      ? assignRarityTiers(newDirectorEntities)
-      : []
+    newDirectorEntities.length > 0 ? assignRarityTiers(newDirectorEntities) : []
 
   // Pool-wide stats (percentile-ranked across all cards in refresh batch)
   const moviePoolStats = computePoolStats(
     movies.map((m) => m.popularity),
-    movies.map((m) => m.vote_average),
+    movies.map((m) => m.vote_average)
   )
   const movieStatsMap = new Map(
-    movies.map((m, i) => [makeCardId("movie", m.id), moviePoolStats[i]]),
+    movies.map((m, i) => [makeCardId('movie', m.id), moviePoolStats[i]])
   )
 
   const actorPoolStats = computePoolStats(
     processedActors.map((a) => a.person.popularity),
-    processedActors.map((a) => a.avgMovieVote),
+    processedActors.map((a) => a.avgMovieVote)
   )
   const actorStatsMap = new Map(
-    processedActors.map((a, i) => [makeCardId("actor", a.person.id), actorPoolStats[i]]),
+    processedActors.map((a, i) => [makeCardId('actor', a.person.id), actorPoolStats[i]])
   )
 
   const directorPoolStats = computePoolStats(
     processedDirectors.map((d) => d.person.popularity),
-    processedDirectors.map((d) => 0.7 * (d.avgMovieVote / 10) + 0.3 * d.careerConsistency),
+    processedDirectors.map((d) => 0.7 * (d.avgMovieVote / 10) + 0.3 * d.careerConsistency)
   )
   const directorStatsMap = new Map(
-    processedDirectors.map((d, i) => [makeCardId("director", d.person.id), directorPoolStats[i]]),
+    processedDirectors.map((d, i) => [makeCardId('director', d.person.id), directorPoolStats[i]])
   )
 
   const newMovieCards = buildMovieCards(newMovies, tieredNewMovies, movieStatsMap)
@@ -916,7 +844,7 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     const BATCH_SIZE = 100
     for (let i = 0; i < allNewCards.length; i += BATCH_SIZE) {
       const batch = allNewCards.slice(i, i + BATCH_SIZE)
-      const { error } = await supabase.from("card_pool").insert(batch)
+      const { error } = await supabase.from('card_pool').insert(batch)
       if (error) {
         throw new Error(`Insert new cards failed: ${error.message}`)
       }
@@ -929,14 +857,14 @@ export async function refreshCardPool(): Promise<RefreshResult> {
 
   // Update existing movies
   for (const movie of existingMovies) {
-    const cardId = makeCardId("movie", movie.id)
+    const cardId = makeCardId('movie', movie.id)
     const stats = movieStatsMap.get(cardId)
     if (!stats) continue
 
     const { data: existing } = await supabase
-      .from("card_pool")
-      .select("rarity")
-      .eq("id", cardId)
+      .from('card_pool')
+      .select('rarity')
+      .eq('id', cardId)
       .single()
 
     if (!existing) continue
@@ -944,11 +872,11 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     const { atk, def } = applyRarityMultiplier(
       stats.baseAtk,
       stats.baseDef,
-      existing.rarity as RarityTier,
+      existing.rarity as RarityTier
     )
 
     const { error } = await supabase
-      .from("card_pool")
+      .from('card_pool')
       .update({
         name: movie.title,
         image_path: movie.poster_path,
@@ -965,26 +893,26 @@ export async function refreshCardPool(): Promise<RefreshResult> {
         rarity_score: computeMovieRarityScore(
           movie.popularity,
           movie.vote_average,
-          movie.vote_count,
+          movie.vote_count
         ),
         popularity_snapshot: movie.popularity,
         pool_updated_at: now,
       })
-      .eq("id", cardId)
+      .eq('id', cardId)
 
     if (!error) updatedCount++
   }
 
   // Update existing actors
   for (const actor of existingActors) {
-    const cardId = makeCardId("actor", actor.person.id)
+    const cardId = makeCardId('actor', actor.person.id)
     const stats = actorStatsMap.get(cardId)
     if (!stats) continue
 
     const { data: existing } = await supabase
-      .from("card_pool")
-      .select("rarity")
-      .eq("id", cardId)
+      .from('card_pool')
+      .select('rarity')
+      .eq('id', cardId)
       .single()
 
     if (!existing) continue
@@ -992,11 +920,11 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     const { atk, def } = applyRarityMultiplier(
       stats.baseAtk,
       stats.baseDef,
-      existing.rarity as RarityTier,
+      existing.rarity as RarityTier
     )
 
     const { error } = await supabase
-      .from("card_pool")
+      .from('card_pool')
       .update({
         name: actor.person.name,
         image_path: actor.person.profile_path,
@@ -1011,26 +939,26 @@ export async function refreshCardPool(): Promise<RefreshResult> {
           actor.person.popularity,
           actor.avgMovieVote,
           actor.movieCreditCount,
-          actor.totalVoteCount,
+          actor.totalVoteCount
         ),
         popularity_snapshot: actor.person.popularity,
         pool_updated_at: now,
       })
-      .eq("id", cardId)
+      .eq('id', cardId)
 
     if (!error) updatedCount++
   }
 
   // Update existing directors
   for (const director of existingDirectors) {
-    const cardId = makeCardId("director", director.person.id)
+    const cardId = makeCardId('director', director.person.id)
     const stats = directorStatsMap.get(cardId)
     if (!stats) continue
 
     const { data: existing } = await supabase
-      .from("card_pool")
-      .select("rarity")
-      .eq("id", cardId)
+      .from('card_pool')
+      .select('rarity')
+      .eq('id', cardId)
       .single()
 
     if (!existing) continue
@@ -1038,11 +966,11 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     const { atk, def } = applyRarityMultiplier(
       stats.baseAtk,
       stats.baseDef,
-      existing.rarity as RarityTier,
+      existing.rarity as RarityTier
     )
 
     const { error } = await supabase
-      .from("card_pool")
+      .from('card_pool')
       .update({
         name: director.person.name,
         image_path: director.person.profile_path,
@@ -1058,12 +986,12 @@ export async function refreshCardPool(): Promise<RefreshResult> {
           director.person.popularity,
           director.avgMovieVote,
           director.movieCreditCount,
-          director.totalVoteCount,
+          director.totalVoteCount
         ),
         popularity_snapshot: director.person.popularity,
         pool_updated_at: now,
       })
-      .eq("id", cardId)
+      .eq('id', cardId)
 
     if (!error) updatedCount++
   }
@@ -1078,6 +1006,6 @@ export async function refreshCardPool(): Promise<RefreshResult> {
     byRarity: countByRarity(allNewCards),
   }
 
-  console.log("[refresh] Refresh complete!", JSON.stringify(summary, null, 2))
+  console.log('[refresh] Refresh complete!', JSON.stringify(summary, null, 2))
   return summary
 }

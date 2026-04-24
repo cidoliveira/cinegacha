@@ -1,11 +1,9 @@
-import Link from "next/link"
+import Link from 'next/link'
 
 export default function Home() {
   return (
     <div className="mx-auto flex flex-1 flex-col justify-center px-6 sm:max-w-xl sm:px-0">
-      <h1 className="font-display text-4xl text-text-primary sm:text-5xl">
-        CineGacha
-      </h1>
+      <h1 className="font-display text-4xl text-text-primary sm:text-5xl">CineGacha</h1>
       <p className="mt-3 text-sm leading-relaxed text-text-secondary">
         Collect cards from the history of cinema.
         <br />

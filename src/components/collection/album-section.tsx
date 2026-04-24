@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import type { AlbumWithProgress, CollectionCard } from "@/app/actions/collection"
-import { GachaCard } from "@/components/card/gacha-card"
-import { CardSilhouette } from "@/components/collection/card-silhouette"
+import { useState } from 'react'
+import type { AlbumWithProgress, CollectionCard } from '@/app/actions/collection'
+import { GachaCard } from '@/components/card/gacha-card'
+import { CardSilhouette } from '@/components/collection/card-silhouette'
 
 interface AlbumSectionProps {
   albums: AlbumWithProgress[]
@@ -29,8 +29,7 @@ export function AlbumSection({ albums, collectedCardMap }: AlbumSectionProps) {
   // Sort: completed first, then by completion %, then alphabetically
   const sorted = [...albums].sort((a, b) => {
     if (a.is_completed !== b.is_completed) return a.is_completed ? -1 : 1
-    if (b.completion_pct !== a.completion_pct)
-      return b.completion_pct - a.completion_pct
+    if (b.completion_pct !== a.completion_pct) return b.completion_pct - a.completion_pct
     return a.name.localeCompare(b.name)
   })
 
@@ -40,9 +39,7 @@ export function AlbumSection({ albums, collectedCardMap }: AlbumSectionProps) {
     <div className="mx-auto max-w-7xl px-4 py-6">
       {/* Section header */}
       <div className="mb-4">
-        <h2 className="font-display text-xl tracking-wider text-text-primary">
-          Genre Albums
-        </h2>
+        <h2 className="font-display text-xl tracking-wider text-text-primary">Genre Albums</h2>
         <p className="mt-1 font-body text-sm text-text-muted">
           {albums.length} albums &middot; {completedCount} completed
         </p>
@@ -51,11 +48,7 @@ export function AlbumSection({ albums, collectedCardMap }: AlbumSectionProps) {
       {/* Album list */}
       <div className="flex flex-col gap-3">
         {sorted.map((album) => (
-          <AlbumCard
-            key={album.id}
-            album={album}
-            collectedCardMap={collectedCardMap}
-          />
+          <AlbumCard key={album.id} album={album} collectedCardMap={collectedCardMap} />
         ))}
       </div>
     </div>
@@ -103,7 +96,7 @@ function AlbumCard({ album, collectedCardMap }: AlbumCardProps) {
         {/* Expand indicator */}
         <span
           className="ml-1 text-text-muted transition-transform duration-200"
-          style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
         >
           &#8964;
         </span>
@@ -112,7 +105,7 @@ function AlbumCard({ album, collectedCardMap }: AlbumCardProps) {
       {/* Expandable content -- CSS grid-template-rows transition */}
       <div
         className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+        style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
       >
         <div className="min-h-0 overflow-hidden">
           <div className="grid grid-cols-2 gap-3 px-4 pb-4 pt-0 sm:grid-cols-3">
@@ -122,13 +115,7 @@ function AlbumCard({ album, collectedCardMap }: AlbumCardProps) {
 
               if (isCollected && collectedCard) {
                 // Fully collected: render the actual card
-                return (
-                  <GachaCard
-                    key={cardId}
-                    card={collectedCard}
-                    size="sm"
-                  />
-                )
+                return <GachaCard key={cardId} card={collectedCard} size="sm" />
               }
 
               if (isCollected && !collectedCard) {
@@ -139,9 +126,7 @@ function AlbumCard({ album, collectedCardMap }: AlbumCardProps) {
                     key={cardId}
                     className="flex aspect-[5/7] w-full items-center justify-center rounded-lg border-2 border-green-500/30 bg-green-500/10 opacity-60"
                   >
-                    <span className="font-display text-sm text-green-400">
-                      &#10003;
-                    </span>
+                    <span className="font-display text-sm text-green-400">&#10003;</span>
                   </div>
                 )
               }

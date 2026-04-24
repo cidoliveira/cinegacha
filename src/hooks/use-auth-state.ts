@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useEffect, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import type { User } from '@supabase/supabase-js'
 
 /**
  * Reactive auth state hook.
@@ -33,7 +33,7 @@ export function useAuthState() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
 
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
         router.refresh()
       }
     })

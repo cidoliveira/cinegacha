@@ -1,63 +1,54 @@
-import Image from "next/image"
-import type { PulledCard } from "@/lib/gacha/types"
-import { computeEffectiveStats } from "@/lib/card/stats"
-import { cardImageUrl } from "@/lib/card/images"
-import { RARITY_TIERS } from "@/lib/rarity/tiers"
-import { CardTypeBadge } from "@/components/card/card-type-badge"
-import { CardStats } from "@/components/card/card-stats"
-import { RarityFoilOverlay } from "@/components/card/rarity-foil-overlay"
+import Image from 'next/image'
+import type { PulledCard } from '@/lib/gacha/types'
+import { computeEffectiveStats } from '@/lib/card/stats'
+import { cardImageUrl } from '@/lib/card/images'
+import { RARITY_TIERS } from '@/lib/rarity/tiers'
+import { CardTypeBadge } from '@/components/card/card-type-badge'
+import { CardStats } from '@/components/card/card-stats'
+import { RarityFoilOverlay } from '@/components/card/rarity-foil-overlay'
 
-type CardSize = "sm" | "md" | "lg"
+type CardSize = 'sm' | 'md' | 'lg'
 
-const TYPE_TINT: Record<PulledCard["card_type"], string> = {
-  movie: "border-t-amber-500/40",
-  actor: "border-t-sky-500/40",
-  director: "border-t-violet-500/40",
+const TYPE_TINT: Record<PulledCard['card_type'], string> = {
+  movie: 'border-t-amber-500/40',
+  actor: 'border-t-sky-500/40',
+  director: 'border-t-violet-500/40',
 }
 
 const IMAGE_SIZES: Record<CardSize, string> = {
-  sm: "(max-width: 640px) 30vw, (max-width: 1024px) 20vw, 12vw",
-  md: "(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 18vw",
-  lg: "(max-width: 640px) 90vw, (max-width: 1024px) 60vw, 40vw",
+  sm: '(max-width: 640px) 30vw, (max-width: 1024px) 20vw, 12vw',
+  md: '(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 18vw',
+  lg: '(max-width: 640px) 90vw, (max-width: 1024px) 60vw, 40vw',
 }
 
 interface GachaCardProps {
   card: PulledCard
   size?: CardSize
-  context?: "grid" | "modal" | "reveal"
+  context?: 'grid' | 'modal' | 'reveal'
   onClick?: () => void
 }
 
-export function GachaCard({ card, size = "md", context = "grid", onClick }: GachaCardProps) {
+export function GachaCard({ card, size = 'md', context = 'grid', onClick }: GachaCardProps) {
   const imageUrl = cardImageUrl(card.image_path, card.card_type, size)
-  const { atk, def, dupeCount } = computeEffectiveStats(
-    card.atk,
-    card.def,
-    card.stars
-  )
+  const { atk, def, dupeCount } = computeEffectiveStats(card.atk, card.def, card.stars)
   const rarityLabel = RARITY_TIERS[card.rarity].label
   const isHighRarity =
-    card.rarity === "SR" ||
-    card.rarity === "SSR" ||
-    card.rarity === "UR" ||
-    card.rarity === "LR"
+    card.rarity === 'SR' || card.rarity === 'SSR' || card.rarity === 'UR' || card.rarity === 'LR'
   const isDuplicate = card.is_new === false
 
-  const isFoilContext = context === "modal" || context === "reveal"
-  const Wrapper = onClick ? "button" : "div"
-  const interactiveClasses = onClick
-    ? "cursor-pointer transition-opacity hover:opacity-90"
-    : ""
+  const isFoilContext = context === 'modal' || context === 'reveal'
+  const Wrapper = onClick ? 'button' : 'div'
+  const interactiveClasses = onClick ? 'cursor-pointer transition-opacity hover:opacity-90' : ''
 
   return (
     <Wrapper
-      className={`flex aspect-[5/7] w-full flex-col overflow-hidden rounded-lg bg-surface ${isFoilContext ? "foil-card" : ""} ${interactiveClasses}`}
+      className={`flex aspect-[5/7] w-full flex-col overflow-hidden rounded-lg bg-surface ${isFoilContext ? 'foil-card' : ''} ${interactiveClasses}`}
       style={{
         borderWidth: isHighRarity ? 3 : 2,
-        borderStyle: "solid",
+        borderStyle: 'solid',
         borderColor: `var(--color-rarity-${card.rarity.toLowerCase()})`,
       }}
-      {...(onClick ? { onClick, type: "button" as const } : {})}
+      {...(onClick ? { onClick, type: 'button' as const } : {})}
     >
       {/* Image section (~60%) */}
       <div className="relative min-h-0 flex-[3]">
@@ -79,7 +70,7 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
 
         {/* Foil overlay -- modal/reveal contexts only, renders above image */}
         {isFoilContext && (
-          <RarityFoilOverlay rarity={card.rarity} context={context as "modal" | "reveal"} />
+          <RarityFoilOverlay rarity={card.rarity} context={context as 'modal' | 'reveal'} />
         )}
 
         {/* Type badge -- top left */}
@@ -108,9 +99,7 @@ export function GachaCard({ card, size = "md", context = "grid", onClick }: Gach
         className={`flex min-h-0 flex-[2] flex-col justify-between border-t-2 bg-surface-elevated p-2 ${TYPE_TINT[card.card_type]}`}
       >
         <div className="flex flex-col gap-0.5">
-          <h3 className="truncate font-display text-sm italic text-text-primary">
-            {card.name}
-          </h3>
+          <h3 className="truncate font-display text-sm italic text-text-primary">{card.name}</h3>
           <span
             className="text-[10px] font-medium tracking-widest"
             style={{

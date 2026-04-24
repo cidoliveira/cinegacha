@@ -6,7 +6,7 @@
  * ranked and assigned tiers based on cumulative percentile breakpoints,
  * guaranteeing the target distribution regardless of score shape.
  */
-import { PERCENTILE_BREAKPOINTS, type RarityTier } from "./tiers"
+import { PERCENTILE_BREAKPOINTS, type RarityTier } from './tiers'
 
 // ---------------------------------------------------------------------------
 // Composite score functions
@@ -22,11 +22,7 @@ export function computeMovieRarityScore(
   voteAverage: number,
   voteCount: number
 ): number {
-  return (
-    Math.log10(popularity + 1) * 0.2 +
-    voteAverage * 0.5 +
-    Math.log10(voteCount + 1) * 0.3
-  )
+  return Math.log10(popularity + 1) * 0.2 + voteAverage * 0.5 + Math.log10(voteCount + 1) * 0.3
 }
 
 /**
@@ -79,22 +75,20 @@ export function computeDirectorRarityScore(
  * - Each entity's percentile is (index + 1) / total.
  * - The first breakpoint where percentile <= maxPercentile determines the tier.
  */
-export function assignRarityTiers<
-  T extends { id: string; rarityScore: number },
->(entities: T[]): (T & { rarity: RarityTier })[] {
+export function assignRarityTiers<T extends { id: string; rarityScore: number }>(
+  entities: T[]
+): (T & { rarity: RarityTier })[] {
   const sorted = [...entities].sort((a, b) => a.rarityScore - b.rarityScore)
   const total = sorted.length
 
   return sorted.map((entity, index) => {
     const percentile = (index + 1) / total
 
-    const breakpoint = PERCENTILE_BREAKPOINTS.find(
-      (bp) => percentile <= bp.maxPercentile
-    )
+    const breakpoint = PERCENTILE_BREAKPOINTS.find((bp) => percentile <= bp.maxPercentile)
 
     return {
       ...entity,
-      rarity: breakpoint ? breakpoint.tier : ("C" as RarityTier),
+      rarity: breakpoint ? breakpoint.tier : ('C' as RarityTier),
     }
   })
 }

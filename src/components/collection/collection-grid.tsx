@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useEffect, useRef } from "react"
-import Link from "next/link"
-import type { CollectionCard } from "@/app/actions/collection"
-import { GachaCard } from "@/components/card/gacha-card"
+import { useEffect, useRef } from 'react'
+import Link from 'next/link'
+import type { CollectionCard } from '@/app/actions/collection'
+import { GachaCard } from '@/components/card/gacha-card'
 
 interface CollectionGridProps {
   cards: CollectionCard[]
@@ -32,7 +32,7 @@ export function CollectionGrid({
           onLoadMore()
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: '200px' }
     )
 
     observer.observe(sentinel)
@@ -48,10 +48,7 @@ export function CollectionGrid({
       <div className="max-w-7xl mx-auto w-full px-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-[5/7] animate-pulse rounded bg-surface-elevated"
-            />
+            <div key={i} className="aspect-[5/7] animate-pulse rounded bg-surface-elevated" />
           ))}
         </div>
       </div>
@@ -62,9 +59,7 @@ export function CollectionGrid({
   if (!isLoading && cards.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
-        <p className="text-sm text-text-muted">
-          No cards yet.
-        </p>
+        <p className="text-sm text-text-muted">No cards yet.</p>
         <Link
           href="/gacha"
           className="mt-3 border-b border-accent pb-0.5 text-sm text-accent transition-colors hover:text-accent-hover"

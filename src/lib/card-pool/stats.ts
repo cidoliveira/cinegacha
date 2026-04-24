@@ -10,7 +10,7 @@
  * ATK = 0.6 × reach_percentile + 0.4 × quality_percentile
  * DEF = 0.4 × reach_percentile + 0.6 × quality_percentile
  */
-import { RARITY_TIERS, type RarityTier } from "../rarity/tiers"
+import { RARITY_TIERS, type RarityTier } from '../rarity/tiers'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -67,7 +67,7 @@ export function toStatRange(normalizedValue: number): number {
  */
 export function blendToStats(
   reachPct: number,
-  qualityPct: number,
+  qualityPct: number
 ): { baseAtk: number; baseDef: number } {
   const atkNorm = ATK_REACH_WEIGHT * reachPct + ATK_QUALITY_WEIGHT * qualityPct
   const defNorm = DEF_REACH_WEIGHT * reachPct + DEF_QUALITY_WEIGHT * qualityPct
@@ -84,7 +84,7 @@ export function blendToStats(
  */
 export function computePoolStats(
   reachValues: number[],
-  qualityValues: number[],
+  qualityValues: number[]
 ): { baseAtk: number; baseDef: number }[] {
   const reachPcts = toPercentileRanks(reachValues)
   const qualityPcts = toPercentileRanks(qualityValues)
@@ -101,7 +101,7 @@ export function computePoolStats(
 export function applyRarityMultiplier(
   baseAtk: number,
   baseDef: number,
-  rarity: RarityTier,
+  rarity: RarityTier
 ): { atk: number; def: number } {
   const { multiplier } = RARITY_TIERS[rarity]
   const atk = Math.max(1, Math.min(999, Math.round(baseAtk * multiplier)))

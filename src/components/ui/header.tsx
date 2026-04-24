@@ -1,15 +1,15 @@
-"use client"
+'use client'
 
-import { Suspense, useState } from "react"
-import Link from "next/link"
-import { useAuthState } from "@/hooks/use-auth-state"
-import { AuthModal } from "@/components/auth/auth-modal"
-import { UserMenu } from "@/components/auth/user-menu"
-import { createClient } from "@/lib/supabase/client"
+import { Suspense, useState } from 'react'
+import Link from 'next/link'
+import { useAuthState } from '@/hooks/use-auth-state'
+import { AuthModal } from '@/components/auth/auth-modal'
+import { UserMenu } from '@/components/auth/user-menu'
+import { createClient } from '@/lib/supabase/client'
 
 const navLinks = [
-  { label: "Packs", href: "/gacha" },
-  { label: "Collection", href: "/collection" },
+  { label: 'Packs', href: '/gacha' },
+  { label: 'Collection', href: '/collection' },
 ]
 
 export function Header() {

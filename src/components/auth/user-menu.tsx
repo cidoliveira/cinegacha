@@ -1,15 +1,9 @@
-"use client"
+'use client'
 
-import { useEffect, useRef, useState } from "react"
-import type { User } from "@supabase/supabase-js"
+import { useEffect, useRef, useState } from 'react'
+import type { User } from '@supabase/supabase-js'
 
-export function UserMenu({
-  user,
-  onSignOut,
-}: {
-  user: User
-  onSignOut: () => void
-}) {
+export function UserMenu({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -21,15 +15,15 @@ export function UserMenu({
       }
     }
 
-    document.addEventListener("mousedown", handleMouseDown)
-    return () => document.removeEventListener("mousedown", handleMouseDown)
+    document.addEventListener('mousedown', handleMouseDown)
+    return () => document.removeEventListener('mousedown', handleMouseDown)
   }, [])
 
   const displayName =
     user.email ??
     (user.user_metadata?.full_name as string | undefined) ??
     (user.user_metadata?.name as string | undefined) ??
-    "Account"
+    'Account'
 
   const provider = user.app_metadata?.provider as string | undefined
 
@@ -43,12 +37,7 @@ export function UserMenu({
         className="relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-surface-elevated text-text-secondary transition-colors hover:text-text-primary"
       >
         {/* User silhouette SVG */}
-        <svg
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
+        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
           <path
             fillRule="evenodd"
             d="M10 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-7 9a7 7 0 1 1 14 0H3z"
@@ -65,9 +54,7 @@ export function UserMenu({
           {/* User identity */}
           <div className="px-2 py-1">
             <p className="truncate text-sm text-text-primary">{displayName}</p>
-            {provider && (
-              <p className="text-xs text-text-muted capitalize">{provider}</p>
-            )}
+            {provider && <p className="text-xs text-text-muted capitalize">{provider}</p>}
           </div>
 
           {/* Divider */}
