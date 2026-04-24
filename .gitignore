@@ -1,7 +1,8 @@
-# planning
+# local planning and agent artifacts
 .planning/
 .worktrees/
-docs/
+docs/plans/
+docs/superpowers/
 
 # dependencies
 /node_modules
@@ -23,12 +24,13 @@ docs/
 # production
 /build
 
-# misc
+# local and deployment metadata
 .DS_Store
 *.pem
 .mcp.json
 .playwright-mcp/
 supabase/.temp/
+public/ads.txt
 
 # debug
 npm-debug.log*
@@ -46,5 +48,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-.vercel

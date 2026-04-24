@@ -17,6 +17,8 @@ const dmSerif = DM_Serif_Display({
   display: 'swap',
 })
 
+const adsenseClient = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT
+
 export const metadata: Metadata = {
   title: 'CineGacha',
   description: 'Collect cinema cards. Open packs. Build your collection.',
@@ -30,12 +32,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${dmSerif.variable}`}>
       <head>
-        <meta name="google-adsense-account" content="ca-pub-9726973184786812" />
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9726973184786812"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        {adsenseClient ? (
+          <>
+            <meta name="google-adsense-account" content={adsenseClient} />
+            <Script
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+              crossOrigin="anonymous"
+              strategy="afterInteractive"
+            />
+          </>
+        ) : null}
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background text-text-primary">
         <RootLayoutShell>{children}</RootLayoutShell>
