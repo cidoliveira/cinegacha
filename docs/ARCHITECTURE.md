@@ -55,7 +55,7 @@ Rarity is snapshotted when a card enters the pool. Later TMDB popularity changes
 
 ## Auth and Persistence
 
-The app supports anonymous-first play through Supabase anonymous auth. Users can start opening packs without creating an account. When they sign in with OAuth, the migration flow preserves the existing anonymous collection under the persistent account.
+The app supports anonymous-first play through Supabase anonymous auth. Users can start opening packs without creating an account. When they sign in with GitHub OAuth, the migration flow preserves the existing anonymous collection under the persistent account.
 
 ## UI System
 

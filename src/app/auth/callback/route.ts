@@ -1,13 +1,13 @@
-import { NextResponse, type NextRequest } from "next/server"
+import { NextResponse, type NextRequest } from 'next/server'
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * OAuth callback route handler.
  *
- * This is the redirect URL registered with OAuth providers (Google, Discord,
- * GitHub). Supabase Auth redirects here with a PKCE `code` parameter after
- * the user approves the provider consent screen.
+ * This is the redirect URL registered with the configured OAuth provider.
+ * Supabase Auth redirects here with a PKCE `code` parameter after the user
+ * approves the provider consent screen.
  *
  * Flow:
  *   1. Exchange the OAuth code for a Supabase session.
@@ -25,22 +25,22 @@ import { createClient } from "@/lib/supabase/server"
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
 
-  const code = searchParams.get("code")
-  const error = searchParams.get("error")
-  const next = searchParams.get("next") ?? "/"
+  const code = searchParams.get('code')
+  const error = searchParams.get('error')
+  const next = searchParams.get('next') ?? '/'
 
   // Supabase may include the provider in the callback URL on certain error types
   // (e.g. linkIdentity conflicts). Forward it so the client can retry via
   // signInWithOAuth without the user needing to pick a provider again.
-  const provider = searchParams.get("provider")
+  const provider = searchParams.get('provider')
 
   // If the provider returned an error (e.g. user denied consent, or account
   // linking conflict), redirect to the home page with auth_error=true.
   if (error) {
     const errorUrl = new URL(`${origin}/`)
-    errorUrl.searchParams.set("auth_error", "true")
+    errorUrl.searchParams.set('auth_error', 'true')
     if (provider) {
-      errorUrl.searchParams.set("provider", provider)
+      errorUrl.searchParams.set('provider', provider)
     }
     return NextResponse.redirect(errorUrl)
   }
@@ -49,8 +49,7 @@ export async function GET(request: NextRequest) {
     // MUST await -- createClient() is async (awaits next/headers cookies())
     const supabase = await createClient()
 
-    const { data, error: exchangeError } =
-      await supabase.auth.exchangeCodeForSession(code)
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError || !data.session) {
       return NextResponse.redirect(`${origin}/?auth_error=true`)
@@ -61,7 +60,7 @@ export async function GET(request: NextRequest) {
     // Read the anonymous user ID set by useGuestSession on first visit.
     // Use request.cookies directly -- avoids the async cookies() call and
     // is available in route handlers without any extra imports.
-    const anonId = request.cookies.get("anon_id")?.value
+    const anonId = request.cookies.get('anon_id')?.value
 
     // Build the redirect response first so we can attach cookie operations to it.
     const redirectUrl = `${origin}${next}`
@@ -72,14 +71,14 @@ export async function GET(request: NextRequest) {
       // Errors are intentionally swallowed: a migration failure should not
       // block sign-in. The anon data may be partially transferred or lost,
       // but the user is now authenticated and can continue playing.
-      await supabase.rpc("migrate_anon_to_user", {
+      await supabase.rpc('migrate_anon_to_user', {
         p_anon_id: anonId,
         p_user_id: newUserId,
       })
 
       // Remove the anon_id cookie from the response -- the session cookie
       // issued by exchangeCodeForSession now identifies the user.
-      response.cookies.delete("anon_id")
+      response.cookies.delete('anon_id')
     }
 
     return response

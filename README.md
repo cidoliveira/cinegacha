@@ -12,7 +12,7 @@ The project is built as a portfolio-grade full-stack app: server-authoritative p
 - Rarity tiers from Common through Legendary Rare.
 - ATK/DEF card stats derived from TMDB data and duplicate bonuses.
 - Anonymous Supabase sessions for first-play onboarding.
-- OAuth sign-in with persistent cloud collections.
+- GitHub OAuth sign-in with persistent cloud collections.
 - Collection page with filtering, sorting, progress tracking, and detail modals.
 - Rarity foil, glow, and share-image effects for high-value cards.
 - Admin-only seed and refresh routes guarded by a bearer secret.
