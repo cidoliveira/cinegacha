@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from 'react'
 
+const AD_UNIT_ID = process.env.NEXT_PUBLIC_ADSENSE_REWARDED_AD_UNIT ?? ''
+
 interface UseRewardedAdReturn {
   /** Whether the local rewarded-ad flow can be triggered. */
   isLoaded: boolean
@@ -19,10 +21,14 @@ interface UseRewardedAdReturn {
  * can be tested locally without an ad provider.
  */
 export function useRewardedAd(): UseRewardedAdReturn {
-  const [isLoaded] = useState(true)
+  const isLoaded = !AD_UNIT_ID
   const [isShowing, setIsShowing] = useState(false)
 
   const show = useCallback(async (): Promise<void> => {
+    if (AD_UNIT_ID) {
+      throw new Error('Rewarded ad SDK is not configured in the open-source build')
+    }
+
     setIsShowing(true)
     try {
       await Promise.resolve()
