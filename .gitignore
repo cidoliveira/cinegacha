@@ -1,5 +1,6 @@
 # planning
 .planning/
+.worktrees/
 docs/
 
 # dependencies
