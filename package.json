@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "prettier --write \"**/*\" --ignore-unknown",
+    "format:check": "prettier --check \"**/*\" --ignore-unknown"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
